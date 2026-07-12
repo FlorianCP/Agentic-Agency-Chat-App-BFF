@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<!--
+  launchd user agent for the Agentic Agency BFF (bff/SETUP.md section 5).
+  Replace every __HOME__ with the absolute home directory (launchd does not expand ~),
+  copy to ~/Library/LaunchAgents/, then:
+    launchctl bootstrap gui/$(id -u) ~/Library/LaunchAgents/space.rath.agency-bff.plist
+-->
+<plist version="1.0">
+<dict>
+    <key>Label</key>
+    <string>space.rath.agency-bff</string>
+    <key>ProgramArguments</key>
+    <array>
+        <string>__HOME__/.local/bin/agency-bff</string>
+        <string>run</string>
+    </array>
+    <key>RunAtLoad</key>
+    <true/>
+    <key>KeepAlive</key>
+    <dict>
+        <key>SuccessfulExit</key>
+        <false/>
+    </dict>
+    <key>StandardOutPath</key>
+    <string>__HOME__/.agency-bff/log/agency-bff.log</string>
+    <key>StandardErrorPath</key>
+    <string>__HOME__/.agency-bff/log/agency-bff.log</string>
+</dict>
+</plist>

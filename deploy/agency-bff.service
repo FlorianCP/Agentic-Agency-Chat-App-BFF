@@ -1,0 +1,17 @@
+# systemd user unit for the Agentic Agency BFF (bff/SETUP.md section 5).
+# Install: cp agency-bff.service ~/.config/systemd/user/ && systemctl --user enable --now agency-bff
+# (For login-independent operation: loginctl enable-linger $USER.)
+[Unit]
+Description=Agentic Agency BFF companion service
+After=network.target
+
+[Service]
+ExecStart=%h/.local/bin/agency-bff run
+Restart=on-failure
+RestartSec=5
+# The config dir holds secrets; keep the service's view of the system minimal.
+NoNewPrivileges=true
+PrivateTmp=true
+
+[Install]
+WantedBy=default.target
