@@ -6,9 +6,9 @@ for my chat app's live mode."* Follow this runbook top to bottom. It tells you h
 and tell the user whether installing is safe and what it means, (2) install, (3) configure,
 (4) verify, and (5) hand the user app-side instructions.**
 
-> **Status: v0.11.0 (2026-07-16).** Pairing, upload, media, foreground events, run relay,
-> watches/inbox, remote logging, and optional APNs push are implemented. `upload`, `media`,
-> `events`, `run_relay`, and `logs` are the required live-mode baseline; only `push` may
+> **Status: v0.15.0 (2026-07-16).** Pairing, upload, media, managed storage, foreground events,
+> run relay, watches/inbox, remote logging, and optional APNs push are implemented. `upload`,
+> `media`, `events`, `run_relay`, `logs`, and `storage` are the required live-mode baseline; only `push` may
 > truthfully report false.
 
 **Ground rules while following this runbook:**
@@ -68,7 +68,7 @@ netstat -an | grep -E '[.:]8643\b.*LISTEN'
 # Existing install? (expect nothing on first install)
 ls ~/.agency-bff 2>/dev/null; command -v agency-bff
 
-# Disk headroom for the data dir (uploads + media; default caps total ~4 GB)
+# Disk headroom for the combined file store (inbox + outbox; default cap 20 GB)
 df -h ~
 
 ```
@@ -76,7 +76,7 @@ df -h ~
 **Produce a recommendation** for the user from the results:
 
 - **Safe to proceed** when: a Hermes gateway is running and healthy on this host, port 8643 (or an
-  alternative you pick) is free, and there is at least ~5 GB disk headroom. Say which port and
+  alternative you pick) is free, and there is at least ~25 GB disk headroom. Say which port and
   data directory you will use.
 - **Ask first** when: an `~/.agency-bff` directory or running `agency-bff` already exists (this is
   an upgrade/repair, not an install — inventory it and confirm), or disk is tight, or you cannot
@@ -104,8 +104,8 @@ Install location: `~/.local/bin/agency-bff` (create the directory if needed) or
 agency-bff init
 ```
 
-`init` creates `~/.agency-bff/config.json` (`0600`, directory `0700`), the data/outbox
-directories, and generates the **pairing token — it prints once; deliver it to the user verbatim
+`init` creates `~/.agency-bff/config.json` (`0600`, directory `0700`), the state/log data tree,
+and `~/.agency-bff/files/{inbox,outbox}`. It generates the **pairing token - it prints once; deliver it to the user verbatim
 and do not store it anywhere else** (only its hash lives in the config).
 
 Then fill in `~/.agency-bff/config.json` using the generated structure:
@@ -126,7 +126,13 @@ Then fill in `~/.agency-bff/config.json` using the generated structure:
    `bundle_id` of the app build, and `environment` (`development` for Xcode installs,
    `production` for TestFlight/App Store). If the user has no Apple Developer membership, skip:
    everything else works, and `capabilities` will simply report `push: false`.
-4. **Optional — gateway tools for API sessions (ASK THE USER; their call, either answer is
+4. **Storage:** keep `files_dir` pointed at a directory containing only `inbox/` and `outbox/`.
+   It is safe to share that parent through WebDAV because state, credentials, and logs stay under
+   `data_dir`. Defaults are a combined 20 GB budget, 180-day retention, a 60-day guided cleanup,
+   an 18 GB warning threshold, and a 10 GB host-free-space floor. An upgrade automatically moves
+   legacy `data/inbox` and `data/outbox` contents and leaves a compatibility symlink at the old
+   inbox path. Do not remove that symlink; older chats can contain absolute inbox paths.
+5. **Optional - gateway tools for API sessions (ASK THE USER; their call, either answer is
    fine):** check what the gateway currently exposes to API sessions:
 
    ```sh
@@ -184,6 +190,9 @@ curl -s http://127.0.0.1:8643/health
 curl -s -H "Authorization: Bearer <PAIRING_TOKEN>" http://127.0.0.1:8643/v1/bff/capabilities
 # -> {"push":…,"upload":true,"media":true,…}
 
+curl -s -H "Authorization: Bearer <PAIRING_TOKEN>" http://127.0.0.1:8643/v1/storage
+# -> combined usage/budget, host disk free, reclaimable bytes, cleanup age, and episode
+
 agency-bff status        # config sanity + gateway reachability, secrets redacted
 ```
 
@@ -211,7 +220,7 @@ Give the user exactly this, filled in:
 > - **URL:** `<the reachable base URL, e.g. https://klaushaus.tail1234.ts.net:8643>`
 > - **Pairing token:** `<the token printed by init>`
 >
-> Tap **Connect and verify**. The app requires version 0.11.0 or newer and will confirm the
+> Tap **Connect and verify**. The app requires version 0.15.0 or newer and will confirm the
 > required baseline:
 > file & voice-memo sending, rich media replies<if push configured>, and notifications when your
 > assistant finishes while the app is closed</if>.
@@ -221,7 +230,7 @@ Give the user exactly this, filled in:
 
 Optionally, when media replies are wanted, persist an agent instruction that messages ending in
 `[client: agentic-agency-app]` may deliver generated media by saving the file under
-`~/.agency-bff/data/outbox/` and returning its relative path as `media://<path>`. Scope the rule
+`~/.agency-bff/files/outbox/` and returning its relative path as `media://<path>`. Scope the rule
 to that client tag so other channels are unaffected. Record that you installed this instruction;
 [UNINSTALL.md](UNINSTALL.md) removes it again.
 
@@ -230,9 +239,9 @@ to that client tag so other channels are unaffected. Record that you installed t
 - Before editing any pre-existing file (shell profiles, proxy configs, launchd/systemd files not
   created by you): copy it to `<file>.bak-<date>` first and tell the user.
 - Never modify the Hermes gateway's own config, database, or service definition.
-- The BFF's own state is disposable-by-design: config can be regenerated (`init` + re-pair),
-  inbox/outbox are caches. Still, include `~/.agency-bff/config.json` in whatever backup the user
-  already runs, and say so in the handoff.
+- BFF operational state can be regenerated (`init` + re-pair), but inbox/outbox are user-visible
+  files retained for about 180 days, not disposable caches. Include `~/.agency-bff/config.json`
+  and the chosen `files_dir` in the user's existing backup policy, and say so in the handoff.
 
 ## 8. Uninstall
 
