@@ -6,9 +6,9 @@ for my chat app's live mode."* Follow this runbook top to bottom. It tells you h
 and tell the user whether installing is safe and what it means, (2) install, (3) configure,
 (4) verify, and (5) hand the user app-side instructions.**
 
-> **Status: v0.15.0 (2026-07-16).** Pairing, upload, media, managed storage, foreground events,
+> **Status: v0.16.0 (2026-07-17).** Pairing, upload, media, managed storage, shared workspace, foreground events,
 > run relay, watches/inbox, remote logging, and optional APNs push are implemented. `upload`,
-> `media`, `events`, `run_relay`, `logs`, and `storage` are the required live-mode baseline; only `push` may
+> `media`, `events`, `run_relay`, `logs`, `storage`, and `share` are the required live-mode baseline; only `push` may
 > truthfully report false.
 
 **Ground rules while following this runbook:**
@@ -126,7 +126,9 @@ Then fill in `~/.agency-bff/config.json` using the generated structure:
    `bundle_id` of the app build, and `environment` (`development` for Xcode installs,
    `production` for TestFlight/App Store). If the user has no Apple Developer membership, skip:
    everything else works, and `capabilities` will simply report `push: false`.
-4. **Storage:** keep `files_dir` pointed at a directory containing only `inbox/` and `outbox/`.
+4. **Storage:** `share_dir` defaults to `<files_dir>/share`. Keep it there for a single WebDAV
+   root, or set it to an absolute operator-chosen workspace. Share contents are never cleaned up
+   or evicted by the BFF's managed inbox/outbox retention policy.
    It is safe to share that parent through WebDAV because state, credentials, and logs stay under
    `data_dir`. Defaults are a combined 20 GB budget, 180-day retention, a 60-day guided cleanup,
    an 18 GB warning threshold, and a 10 GB host-free-space floor. An upgrade automatically moves
@@ -220,7 +222,7 @@ Give the user exactly this, filled in:
 > - **URL:** `<the reachable base URL, e.g. https://klaushaus.tail1234.ts.net:8643>`
 > - **Pairing token:** `<the token printed by init>`
 >
-> Tap **Connect and verify**. The app requires version 0.15.0 or newer and will confirm the
+> Tap **Connect and verify**. The app requires version 0.16.0 or newer and will confirm the
 > required baseline:
 > file & voice-memo sending, rich media replies<if push configured>, and notifications when your
 > assistant finishes while the app is closed</if>.
@@ -241,7 +243,7 @@ to that client tag so other channels are unaffected. Record that you installed t
 - Never modify the Hermes gateway's own config, database, or service definition.
 - BFF operational state can be regenerated (`init` + re-pair), but inbox/outbox are user-visible
   files retained for about 180 days, not disposable caches. Include `~/.agency-bff/config.json`
-  and the chosen `files_dir` in the user's existing backup policy, and say so in the handoff.
+  and the configured `files_dir` and `share_dir` in the user's existing backup policy, and say so in the handoff.
 
 ## 8. Uninstall
 
