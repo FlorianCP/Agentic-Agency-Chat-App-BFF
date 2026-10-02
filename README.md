@@ -15,7 +15,7 @@ step-by-step guide; this README only covers getting the right binary.
 - The head of `main` is always the latest release.
 - The installed binary reports its version with `agency-bff version`; the app enforces a
   minimum version, so always install from the latest commit unless instructed otherwise.
-- The current beta app requires BFF `0.23.0` or newer for its additional GPT-Live voice catalog.
+- Apps using durable GPT-Live voice-message replies require BFF `0.24.0` or newer.
 - Version 0.19.0 adds an optional Codex-subscription Realtime broker. It stays disabled unless
   `realtime_subscription.hermes_python` is explicitly set in the BFF config. Voice preview also
   requires the Hermes environment's `websockets` 15.0+ package. See `SETUP.md` and `UPDATE.md`.
@@ -39,6 +39,12 @@ step-by-step guide; this README only covers getting the right binary.
   Ember, Spruce, and Arbor. Each new voice passed one bounded native provider audio probe
   without microphone input. Legacy Cove-only status and standard Realtime endpoints remain
   unchanged. This evidence does not establish perceived voice identity or German quality.
+- Version 0.24.0 adds bounded `/v1/voice-replies` jobs with immutable request-time voice and
+  final-message bindings, ten-minute rendering leases, cancellation, and create-only AAC
+  publication into the existing outbox. The iOS app renders through GPT-Live; the BFF stores
+  identifiers/digests and audio, without transcripts, speech generation, or a Piper/API-key
+  fallback. Unfinished rendering resumes while the app is foregrounded. See
+  [VOICE_REPLIES.md](VOICE_REPLIES.md) for API, storage limits, and recovery.
 - Subscription voice uses the existing Hermes Codex credential resolver and has no API-key fallback.
   Local credential readiness does not establish model entitlement, quota, or billing treatment.
 
@@ -49,6 +55,7 @@ step-by-step guide; this README only covers getting the right binary.
 - `SHA256SUMS` - checksums for all binaries in this release.
 - `SETUP.md`, `UPDATE.md`, and `UNINSTALL.md` - current agent-facing service runbooks.
 - `LOGGING.md` and `DEBUGGING.md` - request correlation, remote log query, and incident workflows.
+- `VOICE_REPLIES.md` - durable native voice-reply coordination and publication API.
 - `THIRD_PARTY_NOTICES.md` - third-party notices that must accompany the subscription broker.
 - `deploy/` - service templates: `space.rath.agency-bff.plist` (macOS launchd, RunAtLoad +
   KeepAlive) and `agency-bff.service` (Linux systemd user unit). Running the BFF under one of

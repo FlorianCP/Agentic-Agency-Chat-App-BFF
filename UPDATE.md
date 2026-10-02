@@ -25,7 +25,7 @@ Set the required version, then download the binary and checksum file from the sa
 The examples use a temporary directory so an incomplete download never touches the service.
 
 ```sh
-VERSION=0.23.0
+VERSION=0.24.0
 OS=darwin       # darwin or linux, from the inventory
 ARCH=arm64      # arm64 or amd64, from the inventory
 REPO=https://github.com/FlorianCP/Agentic-Agency-Chat-App-BFF
@@ -152,3 +152,16 @@ probe with no microphone input. This establishes feasibility, not perceived voic
 German quality. Legacy
 Cove-only private status and standard Realtime endpoints remain unchanged. The app requires
 BFF 0.23.0; retain the previous binary for rollback.
+
+## 9. Durable GPT-Live voice-reply coordination in 0.24.0
+
+Version 0.24.0 adds authenticated `/v1/voice-replies` registration, lookup, claim, release,
+cancel, and audio-publication routes. It stores small immutable coordination records under
+`data_dir/state/voice-replies` and app-rendered AAC under `files_dir/outbox/voice-replies`.
+No configuration migration, new Python dependency, gateway history mutation, or API-key
+fallback is introduced. Existing Realtime/private call routes retain their contracts.
+
+The app requires BFF 0.24.0. Retain the previous binary for rollback; rollback disables the new
+job API and does not remove its files. Verify the new binary version and authenticated health
+before use. Do not create real rendering jobs merely as an update smoke. See
+[VOICE_REPLIES.md](VOICE_REPLIES.md) for lease, retention, and foreground-resume limits.

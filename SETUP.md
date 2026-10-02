@@ -6,7 +6,7 @@ for my chat app's live mode."* Follow this runbook top to bottom. It tells you h
 and tell the user whether installing is safe and what it means, (2) install, (3) configure,
 (4) verify, and (5) hand the user app-side instructions.**
 
-> **Status: v0.23.0 (2026-10-02).** Pairing, upload, media, managed storage, shared workspace,
+> **Status: v0.24.0 (2026-10-03).** Pairing, upload, media, managed storage, shared workspace,
 > foreground events, run relay, watches/inbox, remote logging, optional APNs push, and optional
 > subscription-authenticated Realtime calls are implemented. Version 0.21.0 adds request-correlation
 > and paginated diagnostics queries; private GPT-Live routes were added in version 0.20.0. `upload`, `media`, `events`,
@@ -148,6 +148,11 @@ Then fill in `~/.agency-bff/config.json` using the generated structure:
    expands it to Cove, Juniper, Maple, Breeze, Vale, Sol, Ember, Spruce, and Arbor. Bounded provider audio probes passed; perceived identity and German suitability
    still require listening. Classification is fixed Codex-only with tools disabled.
    The BFF returns candidates only and never executes their actions. There is no API-key fallback.
+   Version 0.24.0 adds authenticated voice-reply job registration/leases/publication; no new
+   configuration or Python package is needed for that storage surface. GPT-Live synthesis still
+   runs in the foreground iOS app through the existing optional broker. See
+   [VOICE_REPLIES.md](VOICE_REPLIES.md) for limits and recovery. Installing the BFF alone does
+   not generate replies while the phone is suspended.
    Standard voice preview additionally
    requires the existing Hermes environment's `websockets` 15.0+ synchronous client. The BFF
    checks that dependency before requesting preview credentials and does not install or upgrade
@@ -256,7 +261,7 @@ Give the user exactly this, filled in:
 > - **URL:** `<the reachable base URL, e.g. https://klaushaus.tail1234.ts.net:8643>`
 > - **Pairing token:** `<the token printed by init>`
 >
-> Tap **Connect and verify**. The app requires version 0.23.0 or newer and will confirm the
+> Tap **Connect and verify**. The app requires version 0.24.0 or newer and will confirm the
 > required baseline:
 > file & voice-memo sending, rich media replies<if push configured>, and notifications when your
 > assistant finishes while the app is closed</if>.
