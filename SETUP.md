@@ -6,7 +6,7 @@ for my chat app's live mode."* Follow this runbook top to bottom. It tells you h
 and tell the user whether installing is safe and what it means, (2) install, (3) configure,
 (4) verify, and (5) hand the user app-side instructions.**
 
-> **Status: v0.19.0 (2026-10-02).** Pairing, upload, media, managed storage, shared workspace,
+> **Status: v0.20.0 (2026-10-02).** Pairing, upload, media, managed storage, shared workspace,
 > foreground events, run relay, watches/inbox, remote logging, optional APNs push, and optional
 > subscription-authenticated Realtime calls are implemented. `upload`, `media`, `events`,
 > `run_relay`, `logs`, `storage`, and `share` are the required live-mode baseline; only `push` may
@@ -128,7 +128,7 @@ Then fill in `~/.agency-bff/config.json` using the generated structure:
    `bundle_id` of the app build, and `environment` (`development` for Xcode installs,
    `production` for TestFlight/App Store). If the user has no Apple Developer membership, skip:
    everything else works, and `capabilities` will simply report `push: false`.
-4. **Subscription-authenticated Realtime calls (optional):** the feature is off by default because
+4. **Subscription-authenticated voice calls (optional):** the feature is off by default because
    `realtime_subscription.hermes_python` is an empty string in a new config. If the operator wants
    to enable it, set this to the absolute executable path of the Python interpreter used by this
    Hermes installation. Do not discover Python from `PATH`, install another runtime, or change the
@@ -138,7 +138,13 @@ Then fill in `~/.agency-bff/config.json` using the generated structure:
    `base_url` is ignored. The OAuth token and short-lived Realtime credential stay on the host.
    There is no API-key fallback.
 
-   Call setup uses the standard Realtime WebRTC signaling endpoints. Voice preview additionally
+   Standard call setup uses the standard Realtime WebRTC signaling endpoints. Version 0.20.0
+   also adds separate experimental private GPT-Live `/v1/live/subscription/status`, `/calls`, and
+   `/control` routes using this interpreter. Private call readiness requires both `ready` and
+   `control_ready`; host `preview_ready=false` is expected because preview capture is native.
+   The private voice is initially Cove; classification is fixed Codex-only with tools disabled.
+   The BFF returns candidates only and never executes their actions. There is no API-key fallback.
+   Standard voice preview additionally
    requires the existing Hermes environment's `websockets` 15.0+ synchronous client. The BFF
    checks that dependency before requesting preview credentials and does not install or upgrade
    Python packages. Without it, call readiness can still be true while `preview_ready` is false.
@@ -246,7 +252,7 @@ Give the user exactly this, filled in:
 > - **URL:** `<the reachable base URL, e.g. https://klaushaus.tail1234.ts.net:8643>`
 > - **Pairing token:** `<the token printed by init>`
 >
-> Tap **Connect and verify**. The app requires version 0.19.0 or newer and will confirm the
+> Tap **Connect and verify**. The app requires version 0.20.0 or newer and will confirm the
 > required baseline:
 > file & voice-memo sending, rich media replies<if push configured>, and notifications when your
 > assistant finishes while the app is closed</if>.

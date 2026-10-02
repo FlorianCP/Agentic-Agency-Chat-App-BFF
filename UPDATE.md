@@ -25,7 +25,7 @@ Set the required version, then download the binary and checksum file from the sa
 The examples use a temporary directory so an incomplete download never touches the service.
 
 ```sh
-VERSION=0.19.0
+VERSION=0.20.0
 OS=darwin       # darwin or linux, from the inventory
 ARCH=arm64      # arm64 or amd64, from the inventory
 REPO=https://github.com/FlorianCP/Agentic-Agency-Chat-App-BFF
@@ -82,7 +82,7 @@ permits it.
 After all checks pass, remove the temporary directory. Keep `agency-bff.previous` until the user
 accepts the update or through the next normal service check, then remove it.
 
-## 5. Optional subscription Realtime voice in 0.19.0
+## 5. Optional subscription voice in 0.20.0
 
 The update does not enable subscription calls. Existing configs omit
 `realtime_subscription.hermes_python`, which is equivalent to the disabled empty default. Enable
@@ -101,6 +101,13 @@ the feature only when the operator requests it:
    credential resolver returned a supported subscription credential; `preview_ready` also checks
    the WebSocket dependency. Neither flag establishes model entitlement, quota, or billing
    treatment, and the status request makes no inference call.
+
+Version 0.20.0 adds separate experimental private GPT-Live status, SDP call and typed control
+routes under `/v1/live/subscription/`, using that same opt-in Hermes interpreter. Readiness requires
+`ready` and `control_ready`; `preview_ready=false` describes the absent host WAV route, while the
+native client captures preview audio. Status makes no inference call. The private model/voice and
+Codex-only classifier are fixed, with no tools, API-key route or provider fallback. Cove is the
+initial testing restriction. Current status does not establish account model entitlement or billing.
 
 To roll back, restore the config backup or clear `realtime_subscription.hermes_python`, then
 restart only the BFF service. No Hermes gateway files are involved.

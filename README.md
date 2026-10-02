@@ -18,6 +18,11 @@ step-by-step guide; this README only covers getting the right binary.
 - Version 0.19.0 adds an optional Codex-subscription Realtime broker. It stays disabled unless
   `realtime_subscription.hermes_python` is explicitly set in the BFF config. Voice preview also
   requires the Hermes environment's `websockets` 15.0+ package. See `SETUP.md` and `UPDATE.md`.
+- Version 0.20.0 adds experimental private GPT-Live status, WebRTC SDP exchange and typed
+  no-tools control classification under `/v1/live/subscription/`. It uses the same opt-in Hermes
+  interpreter, fixed private model/Cove voice and fixed Codex-only classifier. OAuth stays on
+  the host, and returned control candidates never execute actions in the BFF. Private
+  `preview_ready=false` describes the absent host WAV route; native clients capture audio.
 - The feature uses the existing Hermes Codex credential resolver and has no API-key fallback.
   Local credential readiness does not establish model entitlement, quota, or billing treatment.
 
