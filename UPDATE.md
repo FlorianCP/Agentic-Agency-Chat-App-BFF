@@ -25,7 +25,7 @@ Set the required version, then download the binary and checksum file from the sa
 The examples use a temporary directory so an incomplete download never touches the service.
 
 ```sh
-VERSION=0.21.0
+VERSION=0.22.0
 OS=darwin       # darwin or linux, from the inventory
 ARCH=arm64      # arm64 or amd64, from the inventory
 REPO=https://github.com/FlorianCP/Agentic-Agency-Chat-App-BFF
@@ -133,3 +133,13 @@ curl -fsS http://127.0.0.1:8643/healthz
 
 Report the failed version, the verification error, and the restored version. Do not delete the
 failed binary or logs until the cause is understood.
+
+## 7. Additive GPT-Live voice catalog in 0.22.0
+
+Version 0.22.0 adds authenticated `GET /v1/live/subscription/voices` for new clients. The legacy
+private `/status` schema and its Cove-only `voices` field stay unchanged so TestFlight build 91
+can still pass its strict readiness validation. Standard Realtime routes remain unchanged.
+The new app requires BFF 0.22.0; keep the previous binary for rollback. The catalog offers Cove,
+Juniper, Maple, and Breeze. Bounded provider probes passed startup and nonzero decoded audio
+without microphone input; complete preview utterances, perceived identity, and German suitability
+remain listening checks.
