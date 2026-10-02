@@ -25,7 +25,7 @@ Set the required version, then download the binary and checksum file from the sa
 The examples use a temporary directory so an incomplete download never touches the service.
 
 ```sh
-VERSION=0.20.0
+VERSION=0.21.0
 OS=darwin       # darwin or linux, from the inventory
 ARCH=arm64      # arm64 or amd64, from the inventory
 REPO=https://github.com/FlorianCP/Agentic-Agency-Chat-App-BFF
@@ -112,7 +112,15 @@ initial testing restriction. Current status does not establish account model ent
 To roll back, restore the config backup or clear `realtime_subscription.hermes_python`, then
 restart only the BFF service. No Hermes gateway files are involved.
 
-## 6. Roll back if verification fails
+## 6. Request-correlated diagnostics in 0.21.0
+
+Version 0.21.0 adds request-ID echo and validated device/session/run context to access and lifecycle
+records, plus filtered cursor-paginated queries for remote device logs. No configuration change or
+feature enablement is needed. Existing device log uploads remain compatible. Follow
+[`LOGGING.md`](LOGGING.md) for request IDs, query selectors, pagination headers, and full-fidelity
+log handling. Version 0.20.0 does not provide these additions.
+
+## 7. Roll back if verification fails
 
 ```sh
 cp "$INSTALLED.previous" "$INSTALLED.new"

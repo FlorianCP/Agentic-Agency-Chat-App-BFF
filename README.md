@@ -15,6 +15,7 @@ step-by-step guide; this README only covers getting the right binary.
 - The head of `main` is always the latest release.
 - The installed binary reports its version with `agency-bff version`; the app enforces a
   minimum version, so always install from the latest commit unless instructed otherwise.
+- The current beta app requires BFF `0.21.0` or newer for request-correlated remote diagnostics.
 - Version 0.19.0 adds an optional Codex-subscription Realtime broker. It stays disabled unless
   `realtime_subscription.hermes_python` is explicitly set in the BFF config. Voice preview also
   requires the Hermes environment's `websockets` 15.0+ package. See `SETUP.md` and `UPDATE.md`.
@@ -23,7 +24,13 @@ step-by-step guide; this README only covers getting the right binary.
   interpreter, fixed private model/Cove voice and fixed Codex-only classifier. OAuth stays on
   the host, and returned control candidates never execute actions in the BFF. Private
   `preview_ready=false` describes the absent host WAV route; native clients capture audio.
-- The feature uses the existing Hermes Codex credential resolver and has no API-key fallback.
+- Version 0.21.0 adds request-ID echo, request/device/session/run correlation in access and
+  lifecycle records, richer diagnostic metadata and chunk storage, and cursor-paginated
+  `/v1/logs` queries filtered by session, run, request, or device. Query pagination is reported in
+  `X-Log-Has-More`, `X-Log-Next-Cursor`, and `X-Log-Skipped-Records`. Request bodies and
+  authorization headers are not logged, but paths, queries, and diagnostic messages may contain
+  sensitive information; treat the log tree as private. See `LOGGING.md` and `DEBUGGING.md`.
+- Subscription voice uses the existing Hermes Codex credential resolver and has no API-key fallback.
   Local credential readiness does not establish model entitlement, quota, or billing treatment.
 
 ## Contents
@@ -32,6 +39,7 @@ step-by-step guide; this README only covers getting the right binary.
   `windows` (`amd64`).
 - `SHA256SUMS` - checksums for all binaries in this release.
 - `SETUP.md`, `UPDATE.md`, and `UNINSTALL.md` - current agent-facing service runbooks.
+- `LOGGING.md` and `DEBUGGING.md` - request correlation, remote log query, and incident workflows.
 - `THIRD_PARTY_NOTICES.md` - third-party notices that must accompany the subscription broker.
 - `deploy/` - service templates: `space.rath.agency-bff.plist` (macOS launchd, RunAtLoad +
   KeepAlive) and `agency-bff.service` (Linux systemd user unit). Running the BFF under one of
