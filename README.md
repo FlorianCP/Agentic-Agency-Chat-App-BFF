@@ -15,7 +15,7 @@ step-by-step guide; this README only covers getting the right binary.
 - The head of `main` is always the latest release.
 - The installed binary reports its version with `agency-bff version`; the app enforces a
   minimum version, so always install from the latest commit unless instructed otherwise.
-- The current beta app requires BFF `0.22.0` or newer for its additional GPT-Live voice catalog.
+- The current beta app requires BFF `0.23.0` or newer for its additional GPT-Live voice catalog.
 - Version 0.19.0 adds an optional Codex-subscription Realtime broker. It stays disabled unless
   `realtime_subscription.hermes_python` is explicitly set in the BFF config. Voice preview also
   requires the Hermes environment's `websockets` 15.0+ package. See `SETUP.md` and `UPDATE.md`.
@@ -35,6 +35,10 @@ step-by-step guide; this README only covers getting the right binary.
   TestFlight build 91; standard Realtime routes stay unchanged. Bounded new-voice provider probes
   decoded nonzero audio without microphone input; complete preview utterances, perceived voice
   identity, and German suitability remain listening checks.
+- Version 0.23.0 expands the private voice catalog to Cove, Juniper, Maple, Breeze, Vale, Sol,
+  Ember, Spruce, and Arbor. Each new voice passed one bounded native provider audio probe
+  without microphone input. Legacy Cove-only status and standard Realtime endpoints remain
+  unchanged. This evidence does not establish perceived voice identity or German quality.
 - Subscription voice uses the existing Hermes Codex credential resolver and has no API-key fallback.
   Local credential readiness does not establish model entitlement, quota, or billing treatment.
 

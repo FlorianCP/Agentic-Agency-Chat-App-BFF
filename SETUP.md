@@ -6,7 +6,7 @@ for my chat app's live mode."* Follow this runbook top to bottom. It tells you h
 and tell the user whether installing is safe and what it means, (2) install, (3) configure,
 (4) verify, and (5) hand the user app-side instructions.**
 
-> **Status: v0.22.0 (2026-10-02).** Pairing, upload, media, managed storage, shared workspace,
+> **Status: v0.23.0 (2026-10-02).** Pairing, upload, media, managed storage, shared workspace,
 > foreground events, run relay, watches/inbox, remote logging, optional APNs push, and optional
 > subscription-authenticated Realtime calls are implemented. Version 0.21.0 adds request-correlation
 > and paginated diagnostics queries; private GPT-Live routes were added in version 0.20.0. `upload`, `media`, `events`,
@@ -144,8 +144,8 @@ Then fill in `~/.agency-bff/config.json` using the generated structure:
    `/control` routes using this interpreter. Private call readiness requires both `ready` and
    `control_ready`; host `preview_ready=false` is expected because preview capture is native.
    The legacy private status remains Cove-only for strict older clients. Version 0.22.0 adds
-   an authenticated `/v1/live/subscription/voices` catalog with Cove, Juniper, Maple, and Breeze
-   for new clients. Bounded provider audio probes passed; perceived identity and German suitability
+   an authenticated `/v1/live/subscription/voices` catalog for new clients. Version 0.23.0
+   expands it to Cove, Juniper, Maple, Breeze, Vale, Sol, Ember, Spruce, and Arbor. Bounded provider audio probes passed; perceived identity and German suitability
    still require listening. Classification is fixed Codex-only with tools disabled.
    The BFF returns candidates only and never executes their actions. There is no API-key fallback.
    Standard voice preview additionally
@@ -256,7 +256,7 @@ Give the user exactly this, filled in:
 > - **URL:** `<the reachable base URL, e.g. https://klaushaus.tail1234.ts.net:8643>`
 > - **Pairing token:** `<the token printed by init>`
 >
-> Tap **Connect and verify**. The app requires version 0.22.0 or newer and will confirm the
+> Tap **Connect and verify**. The app requires version 0.23.0 or newer and will confirm the
 > required baseline:
 > file & voice-memo sending, rich media replies<if push configured>, and notifications when your
 > assistant finishes while the app is closed</if>.

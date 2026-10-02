@@ -25,7 +25,7 @@ Set the required version, then download the binary and checksum file from the sa
 The examples use a temporary directory so an incomplete download never touches the service.
 
 ```sh
-VERSION=0.22.0
+VERSION=0.23.0
 OS=darwin       # darwin or linux, from the inventory
 ARCH=arm64      # arm64 or amd64, from the inventory
 REPO=https://github.com/FlorianCP/Agentic-Agency-Chat-App-BFF
@@ -143,3 +143,12 @@ The new app requires BFF 0.22.0; keep the previous binary for rollback. The cata
 Juniper, Maple, and Breeze. Bounded provider probes passed startup and nonzero decoded audio
 without microphone input; complete preview utterances, perceived identity, and German suitability
 remain listening checks.
+
+## 8. Expanded verified GPT-Live catalog in 0.23.0
+
+Version 0.23.0 expands the separate private voice catalog to Cove, Juniper, Maple, Breeze, Vale,
+Sol, Ember, Spruce, and Arbor. Each newly admitted voice passed a bounded native provider audio
+probe with no microphone input. This establishes feasibility, not perceived voice identity or
+German quality. Legacy
+Cove-only private status and standard Realtime endpoints remain unchanged. The app requires
+BFF 0.23.0; retain the previous binary for rollback.
