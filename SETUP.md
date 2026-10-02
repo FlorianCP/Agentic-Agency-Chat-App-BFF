@@ -6,10 +6,12 @@ for my chat app's live mode."* Follow this runbook top to bottom. It tells you h
 and tell the user whether installing is safe and what it means, (2) install, (3) configure,
 (4) verify, and (5) hand the user app-side instructions.**
 
-> **Status: v0.16.0 (2026-07-17).** Pairing, upload, media, managed storage, shared workspace, foreground events,
-> run relay, watches/inbox, remote logging, and optional APNs push are implemented. `upload`,
-> `media`, `events`, `run_relay`, `logs`, `storage`, and `share` are the required live-mode baseline; only `push` may
-> truthfully report false.
+> **Status: v0.19.0 (2026-10-02).** Pairing, upload, media, managed storage, shared workspace,
+> foreground events, run relay, watches/inbox, remote logging, optional APNs push, and optional
+> subscription-authenticated Realtime calls are implemented. `upload`, `media`, `events`,
+> `run_relay`, `logs`, `storage`, and `share` are the required live-mode baseline; only `push` may
+> truthfully report false. Subscription calls and previews remain disabled until an operator sets
+> `realtime_subscription.hermes_python` to the absolute Hermes Python executable path.
 
 **Ground rules while following this runbook:**
 
@@ -126,7 +128,29 @@ Then fill in `~/.agency-bff/config.json` using the generated structure:
    `bundle_id` of the app build, and `environment` (`development` for Xcode installs,
    `production` for TestFlight/App Store). If the user has no Apple Developer membership, skip:
    everything else works, and `capabilities` will simply report `push: false`.
-4. **Storage:** `share_dir` defaults to `<files_dir>/share`. Keep it there for a single WebDAV
+4. **Subscription-authenticated Realtime calls (optional):** the feature is off by default because
+   `realtime_subscription.hermes_python` is an empty string in a new config. If the operator wants
+   to enable it, set this to the absolute executable path of the Python interpreter used by this
+   Hermes installation. Do not discover Python from `PATH`, install another runtime, or change the
+   Hermes gateway. Back up the existing BFF config before editing it and preserve every other key.
+   The embedded helper calls Hermes' Codex resolver and accepts only `provider: "openai-codex"`
+   plus `auth_mode: "chatgpt"`; conventional `sk-` API keys are rejected and the resolver's
+   `base_url` is ignored. The OAuth token and short-lived Realtime credential stay on the host.
+   There is no API-key fallback.
+
+   Call setup uses the standard Realtime WebRTC signaling endpoints. Voice preview additionally
+   requires the existing Hermes environment's `websockets` 15.0+ synchronous client. The BFF
+   checks that dependency before requesting preview credentials and does not install or upgrade
+   Python packages. Without it, call readiness can still be true while `preview_ready` is false.
+   The helper uses fixed OpenAI endpoints, disables configured HTTP and WebSocket proxies, and
+   rejects redirects.
+
+   Authenticated `GET /v1/realtime/subscription/status` checks local credential availability and
+   the preview dependency without making an inference request. A ready response does not prove
+   model entitlement, quota, or billing treatment. `capabilities.realtime_subscription` means only
+   that the helper has been configured. To roll back, restore the backup or clear
+   `realtime_subscription.hermes_python`, then restart only the BFF service.
+5. **Storage:** `share_dir` defaults to `<files_dir>/share`. Keep it there for a single WebDAV
    root, or set it to an absolute operator-chosen workspace. Share contents are never cleaned up
    or evicted by the BFF's managed inbox/outbox retention policy.
    It is safe to share that parent through WebDAV because state, credentials, and logs stay under
@@ -134,7 +158,7 @@ Then fill in `~/.agency-bff/config.json` using the generated structure:
    an 18 GB warning threshold, and a 10 GB host-free-space floor. An upgrade automatically moves
    legacy `data/inbox` and `data/outbox` contents and leaves a compatibility symlink at the old
    inbox path. Do not remove that symlink; older chats can contain absolute inbox paths.
-5. **Optional - gateway tools for API sessions (ASK THE USER; their call, either answer is
+6. **Optional - gateway tools for API sessions (ASK THE USER; their call, either answer is
    fine):** check what the gateway currently exposes to API sessions:
 
    ```sh
@@ -222,7 +246,7 @@ Give the user exactly this, filled in:
 > - **URL:** `<the reachable base URL, e.g. https://klaushaus.tail1234.ts.net:8643>`
 > - **Pairing token:** `<the token printed by init>`
 >
-> Tap **Connect and verify**. The app requires version 0.16.0 or newer and will confirm the
+> Tap **Connect and verify**. The app requires version 0.19.0 or newer and will confirm the
 > required baseline:
 > file & voice-memo sending, rich media replies<if push configured>, and notifications when your
 > assistant finishes while the app is closed</if>.

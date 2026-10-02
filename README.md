@@ -15,12 +15,19 @@ step-by-step guide; this README only covers getting the right binary.
 - The head of `main` is always the latest release.
 - The installed binary reports its version with `agency-bff version`; the app enforces a
   minimum version, so always install from the latest commit unless instructed otherwise.
+- Version 0.19.0 adds an optional Codex-subscription Realtime broker. It stays disabled unless
+  `realtime_subscription.hermes_python` is explicitly set in the BFF config. Voice preview also
+  requires the Hermes environment's `websockets` 15.0+ package. See `SETUP.md` and `UPDATE.md`.
+- The feature uses the existing Hermes Codex credential resolver and has no API-key fallback.
+  Local credential readiness does not establish model entitlement, quota, or billing treatment.
 
 ## Contents
 
 - `agency-bff-<os>-<arch>` - static binaries for `darwin`/`linux` (`arm64`, `amd64`) and
   `windows` (`amd64`).
 - `SHA256SUMS` - checksums for all binaries in this release.
+- `SETUP.md`, `UPDATE.md`, and `UNINSTALL.md` - current agent-facing service runbooks.
+- `THIRD_PARTY_NOTICES.md` - third-party notices that must accompany the subscription broker.
 - `deploy/` - service templates: `space.rath.agency-bff.plist` (macOS launchd, RunAtLoad +
   KeepAlive) and `agency-bff.service` (Linux systemd user unit). Running the BFF under one of
   these is a required part of the install, so it survives crashes and reboots.

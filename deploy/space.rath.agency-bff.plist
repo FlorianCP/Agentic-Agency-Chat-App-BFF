@@ -5,6 +5,8 @@
   Replace every __HOME__ with the absolute home directory (launchd does not expand ~),
   copy to ~/Library/LaunchAgents/, then:
     launchctl bootstrap gui/$(id -u) ~/Library/LaunchAgents/space.rath.agency-bff.plist
+  Optional Realtime subscription calls are configured in ~/.agency-bff/config.json and remain
+  disabled unless realtime_subscription.hermes_python is explicitly set. Do not add credentials here.
 -->
 <plist version="1.0">
 <dict>

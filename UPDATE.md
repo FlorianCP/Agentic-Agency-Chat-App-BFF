@@ -25,7 +25,7 @@ Set the required version, then download the binary and checksum file from the sa
 The examples use a temporary directory so an incomplete download never touches the service.
 
 ```sh
-VERSION=0.11.0
+VERSION=0.19.0
 OS=darwin       # darwin or linux, from the inventory
 ARCH=arm64      # arm64 or amd64, from the inventory
 REPO=https://github.com/FlorianCP/Agentic-Agency-Chat-App-BFF
@@ -82,7 +82,30 @@ permits it.
 After all checks pass, remove the temporary directory. Keep `agency-bff.previous` until the user
 accepts the update or through the next normal service check, then remove it.
 
-## 5. Roll back if verification fails
+## 5. Optional subscription Realtime voice in 0.19.0
+
+The update does not enable subscription calls. Existing configs omit
+`realtime_subscription.hermes_python`, which is equivalent to the disabled empty default. Enable
+the feature only when the operator requests it:
+
+1. Identify the absolute Python executable used by this Hermes installation. Do not rely on
+   `PATH`, install a second Python runtime, or change the gateway.
+2. Confirm that executable provides Hermes' Codex credential resolver. Voice preview also needs
+   the existing environment's `websockets` 15.0+ sync client. The BFF does not install or upgrade
+   packages.
+3. Back up `~/.agency-bff/config.json`, then set only
+   `realtime_subscription.hermes_python` to that absolute executable path. Preserve the other
+   fields and keep the file mode at `0600`; never print or copy its contents into logs or chat.
+4. Restart only the existing BFF service. The gateway does not need a config change or restart.
+5. Check authenticated `GET /v1/realtime/subscription/status`. `ready` means the local Codex
+   credential resolver returned a supported subscription credential; `preview_ready` also checks
+   the WebSocket dependency. Neither flag establishes model entitlement, quota, or billing
+   treatment, and the status request makes no inference call.
+
+To roll back, restore the config backup or clear `realtime_subscription.hermes_python`, then
+restart only the BFF service. No Hermes gateway files are involved.
+
+## 6. Roll back if verification fails
 
 ```sh
 cp "$INSTALLED.previous" "$INSTALLED.new"

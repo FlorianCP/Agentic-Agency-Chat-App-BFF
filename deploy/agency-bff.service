@@ -1,6 +1,8 @@
 # systemd user unit for the Agentic Agency BFF (bff/SETUP.md section 5).
 # Install: cp agency-bff.service ~/.config/systemd/user/ && systemctl --user enable --now agency-bff
 # (For login-independent operation: loginctl enable-linger $USER.)
+# Optional Realtime subscription calls use realtime_subscription.hermes_python in config.json;
+# leave it empty unless the operator explicitly enables them. Do not add credentials to this unit.
 [Unit]
 Description=Agentic Agency BFF companion service
 After=network.target
