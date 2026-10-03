@@ -6,7 +6,7 @@ for my chat app's live mode."* Follow this runbook top to bottom. It tells you h
 and tell the user whether installing is safe and what it means, (2) install, (3) configure,
 (4) verify, and (5) hand the user app-side instructions.**
 
-> **Status: v0.25.0 (2026-10-03).** Pairing, upload, media, managed storage, shared workspace,
+> **Status: v0.25.1 (2026-10-03).** Pairing, upload, media, managed storage, shared workspace,
 > foreground events, run relay, watches/inbox, remote logging, optional APNs push, and optional
 > subscription-authenticated Realtime calls are implemented. Version 0.21.0 adds request-correlation
 > and paginated diagnostics queries; private GPT-Live routes were added in version 0.20.0. `upload`, `media`, `events`,
@@ -263,7 +263,7 @@ Give the user exactly this, filled in:
 > - **URL:** `<the reachable base URL, e.g. https://klaushaus.tail1234.ts.net:8643>`
 > - **Pairing token:** `<the token printed by init>`
 >
-> Tap **Connect and verify**. The app requires version 0.25.0 or newer and will confirm the
+> Tap **Connect and verify**. The app requires version 0.25.1 or newer and will confirm the
 > required baseline:
 > file & voice-memo sending, rich media replies<if push configured>, and notifications when your
 > assistant finishes while the app is closed</if>.

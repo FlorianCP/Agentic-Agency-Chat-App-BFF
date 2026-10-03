@@ -1,4 +1,4 @@
-# Durable voice-reply jobs - BFF 0.25.0
+# Durable voice-reply jobs - BFF 0.25.1
 
 All routes require the existing pairing bearer token. The BFF stores identifiers/digests and
 native iOS-rendered AAC; it does not synthesize speech, hold transcripts, invoke Piper, change
@@ -43,14 +43,25 @@ registration. Reservations have no message binding, lease, pending UI, or synthe
 client observes the exact registered managed link in canonical final assistant history and
 claims the job. The BFF stores no transcript and cannot verify that history condition itself.
 
+If optional reservation preparation fails or capacity is exhausted, the app continues the
+ordinary text turn without an optional reservation or a Piper fallback. Required voice-reply
+preparation retains its explicit error behavior.
+
 Ordinary collection GET excludes reserved jobs. `include_reserved=true` includes them for
 explicit client recovery; `false` preserves the default. Reject invalid or repeated values.
 Individual GET always returns the job. Claim transitions reserved directly to rendering under
 the existing binding/lease rules. Cancel ends unused reservations after canonical completion
 without the link, or on explicit cancellation; stream omissions alone must not decline them.
 Reservations share unresolved capacity (32/session, 256/global), retained-record bounds, and
-180-day metadata pruning with required replies. Cancel frees unresolved capacity immediately,
-while its terminal record remains bounded by normal retention. Legacy required flows are unchanged.
+180-day metadata pruning with required replies, with shorter optional lifecycle bounds.
+Unclaimed reservations expire to cancelled exactly seven days after creation, bounding their
+reply-selection/foreground-recovery window. Cancelled optional metadata is removable seven days
+after its cancellation timestamp; automatic expiry uses the expiry deadline as that timestamp,
+even when first accessed later. Register, individual GET, and collection GET apply these bounds;
+registration prunes eligible metadata before capacity checks. Within the cancellation window,
+identical registration remains idempotent and cannot resurrect the job. After metadata removal,
+the ID is no longer protected by that idempotency window. Uncancelled claimed optional jobs and all required jobs retain their
+existing lifecycle. Cancel frees unresolved capacity immediately. Legacy required flows are unchanged.
 
 ## Conflicts, recovery, and bounds
 

@@ -25,7 +25,7 @@ Set the required version, then download the binary and checksum file from the sa
 The examples use a temporary directory so an incomplete download never touches the service.
 
 ```sh
-VERSION=0.25.0
+VERSION=0.25.1
 OS=darwin       # darwin or linux, from the inventory
 ARCH=arm64      # arm64 or amd64, from the inventory
 REPO=https://github.com/FlorianCP/Agentic-Agency-Chat-App-BFF
@@ -176,8 +176,20 @@ a reservation after canonical final assistant history includes its exact registe
 media link; cancel an unused reservation after canonical completion without that link. The
 BFF stores no transcript and does not synthesize speech or decide whether an answer needs audio.
 
-The app now requires BFF 0.25.0. No configuration or Python migration is needed. Required
+The optional-reply app originally required BFF 0.25.0. No configuration or Python migration is needed. Required
 registration, leases, publication, and Realtime/GPT-Live call routes remain compatible. Retain
 the previous binary for rollback; rolling back to 0.24.0 disables optional-reservation clients.
 Verify the new binary version and authenticated health; avoid creating real jobs as an update
 smoke. See [VOICE_REPLIES.md](VOICE_REPLIES.md) for the exact API and retention limits.
+
+
+## 11. Bounded optional lifecycle in 0.25.1
+
+The app now requires BFF 0.25.1. Unclaimed optional voice reservations expire to cancelled
+seven days after creation. Their managed-reply selection and recovery window ends at that
+deadline. Cancelled optional metadata is removed seven days after cancellation, preserving
+idempotency during that window while preventing ordinary text turns from accumulating
+180 days of tombstones. Late access uses the original expiry deadline, rather than extending
+retention. Register/Get/List consistently apply expiry; registration prunes eligible metadata
+before checking capacity. Uncancelled claimed optional jobs and all required jobs retain their existing lifecycle. No
+configuration migration or service dependency is introduced. See [VOICE_REPLIES.md](VOICE_REPLIES.md).
