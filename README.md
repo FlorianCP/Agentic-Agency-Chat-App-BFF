@@ -15,7 +15,7 @@ step-by-step guide; this README only covers getting the right binary.
 - The head of `main` is always the latest release.
 - The installed binary reports its version with `agency-bff version`; the app enforces a
   minimum version, so always install from the latest commit unless instructed otherwise.
-- Apps using durable GPT-Live voice-message replies require BFF `0.24.0` or newer.
+- Apps using optional GPT-Live voice replies for typed requests require BFF `0.25.0` or newer.
 - Version 0.19.0 adds an optional Codex-subscription Realtime broker. It stays disabled unless
   `realtime_subscription.hermes_python` is explicitly set in the BFF config. Voice preview also
   requires the Hermes environment's `websockets` 15.0+ package. See `SETUP.md` and `UPDATE.md`.
@@ -45,6 +45,10 @@ step-by-step guide; this README only covers getting the right binary.
   identifiers/digests and audio, without transcripts, speech generation, or a Piper/API-key
   fallback. Unfinished rendering resumes while the app is foregrounded. See
   [VOICE_REPLIES.md](VOICE_REPLIES.md) for API, storage limits, and recovery.
+- Version 0.25.0 adds optional voice reservations that remain hidden until canonical final
+  assistant history selects the exact registered managed link. Required voice jobs retain their
+  legacy behavior. Reservations share bounded job capacity and support explicit recovery and
+  cancellation. See [VOICE_REPLIES.md](VOICE_REPLIES.md).
 - Subscription voice uses the existing Hermes Codex credential resolver and has no API-key fallback.
   Local credential readiness does not establish model entitlement, quota, or billing treatment.
 

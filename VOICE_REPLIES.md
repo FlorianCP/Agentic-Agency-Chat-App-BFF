@@ -1,4 +1,4 @@
-# Durable voice-reply jobs - BFF 0.24.0
+# Durable voice-reply jobs - BFF 0.25.0
 
 All routes require the existing pairing bearer token. The BFF stores identifiers/digests and
 native iOS-rendered AAC; it does not synthesize speech, hold transcripts, invoke Piper, change
@@ -10,9 +10,9 @@ the job; the app never guesses its association by text/time/latest message.
 
 | Method/path | Request | Successful response |
 |---|---|---|
-| PUT `/v1/voice-replies/{uuid}` | `{session_id,model,voice}` | Job; identical registration is idempotent |
+| PUT `/v1/voice-replies/{uuid}` | `{session_id,model,voice,reply_mode?}` | Job; identical registration is idempotent |
 | GET `/v1/voice-replies/{uuid}` | None | Job without lease token |
-| GET `/v1/voice-replies?session_id=...` | Session filter | `{data:[Job]}` unresolved pending/rendering/failed only |
+| GET `/v1/voice-replies?session_id=...` | Session filter | `{data:[Job]}` unresolved pending/rendering/failed; `include_reserved=true` also includes reserved |
 | POST `/v1/voice-replies/{uuid}/claim` | `{message_id,answer_sha256}` | `{job,lease_token,lease_generation,lease_expires_at}` |
 | POST `/v1/voice-replies/{uuid}/release` | `{lease_token,lease_generation}` | Failed Job; binding retained |
 | POST `/v1/voice-replies/{uuid}/cancel` | None | Cancelled Job; lease invalidated, binding retained |
@@ -26,13 +26,31 @@ bytes, and reject control/format characters. SHA-256 values are 64 lowercase hex
 
 Job fields: `id`, `session_id`, `model`, `voice`, `media_path`, `status`, optional `message_id`,
 `answer_sha256`, `audio_sha256`, `lease_generation`, optional `lease_expires_at`, `created_at`,
-`updated_at`. Dates are UTC RFC3339 without fractions. Status is pending, rendering, failed,
+`updated_at`. Dates are UTC RFC3339 without fractions. Status is reserved, pending, rendering, failed,
 ready, unavailable, or cancelled. GET never returns the lease token.
 
 Publication headers: `Content-Type: audio/mp4`, `X-Lease-Token`, `X-Lease-Generation`, and
 `X-Audio-SHA256`. Validate the current random token and generation, body digest, and bounded
 ISO BMFF box framing with mandatory ftyp/moov/mdat. This is container validation, not AAC
 sample decoding, playable-audio proof, or voice-identity verification.
+
+## Optional reservations
+
+`reply_mode` is optional: omitted or `"required"` preserves legacy required replies and is
+normalized to an omitted field in responses/storage. `"optional"` creates a reserved job and
+is retained in responses/storage. Other values are invalid. Mode is immutable under idempotent
+registration. Reservations have no message binding, lease, pending UI, or synthesis until the
+client observes the exact registered managed link in canonical final assistant history and
+claims the job. The BFF stores no transcript and cannot verify that history condition itself.
+
+Ordinary collection GET excludes reserved jobs. `include_reserved=true` includes them for
+explicit client recovery; `false` preserves the default. Reject invalid or repeated values.
+Individual GET always returns the job. Claim transitions reserved directly to rendering under
+the existing binding/lease rules. Cancel ends unused reservations after canonical completion
+without the link, or on explicit cancellation; stream omissions alone must not decline them.
+Reservations share unresolved capacity (32/session, 256/global), retained-record bounds, and
+180-day metadata pruning with required replies. Cancel frees unresolved capacity immediately,
+while its terminal record remains bounded by normal retention. Legacy required flows are unchanged.
 
 ## Conflicts, recovery, and bounds
 
@@ -47,12 +65,12 @@ retaken with a new generation. Stale owners cannot publish/release. A published 
 retry succeeds only with the original publishing token/generation; another digest cannot
 overwrite the winner. Cancel ends unresolved work and frees pending capacity. Ready jobs
 cannot be cancelled; use existing media deletion. Missing/changed ready files become unavailable
-and cannot silently regenerate. List returns every unresolved job for the session, ordered by
+and cannot silently regenerate. List returns every included unresolved job for the session, ordered by
 creation time then ID, and excludes ready/unavailable/cancelled history.
 
 Limits: JSON bodies 16 KiB, individual metadata records 32 KiB, audio the smaller of 8 MiB and
 the configured upload cap, 32 unresolved jobs/session, 256 unresolved jobs globally, and 10,000
-retained job records. Failed jobs remain unresolved until completed/cancelled. Metadata is
+retained job records. Reserved and failed jobs remain unresolved until completed/cancelled. Metadata is
 pruned after 180 days. Metadata enumeration streams bounded pages and refuses directories over
 11,024 entries, including foreign names/recent crash artifacts, rather than allocating or
 scanning without limit. Valid regular `.job-<64-hex>` crash files older than ten minutes are

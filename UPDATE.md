@@ -25,7 +25,7 @@ Set the required version, then download the binary and checksum file from the sa
 The examples use a temporary directory so an incomplete download never touches the service.
 
 ```sh
-VERSION=0.24.0
+VERSION=0.25.0
 OS=darwin       # darwin or linux, from the inventory
 ARCH=arm64      # arm64 or amd64, from the inventory
 REPO=https://github.com/FlorianCP/Agentic-Agency-Chat-App-BFF
@@ -161,7 +161,23 @@ cancel, and audio-publication routes. It stores small immutable coordination rec
 No configuration migration, new Python dependency, gateway history mutation, or API-key
 fallback is introduced. Existing Realtime/private call routes retain their contracts.
 
-The app requires BFF 0.24.0. Retain the previous binary for rollback; rollback disables the new
+The original durable-job app requires BFF 0.24.0. Retain the previous binary for rollback; rollback disables the new
 job API and does not remove its files. Verify the new binary version and authenticated health
 before use. Do not create real rendering jobs merely as an update smoke. See
 [VOICE_REPLIES.md](VOICE_REPLIES.md) for lease, retention, and foreground-resume limits.
+
+
+## 10. Optional voice reservations in 0.25.0
+
+Version 0.25.0 adds `reply_mode:"optional"` to voice-reply registration. These jobs start
+reserved, remain hidden from ordinary collection GET, and consume the same bounded unresolved
+capacity as required replies. Recovery clients opt in with `include_reserved=true`. Only claim
+a reservation after canonical final assistant history includes its exact registered managed
+media link; cancel an unused reservation after canonical completion without that link. The
+BFF stores no transcript and does not synthesize speech or decide whether an answer needs audio.
+
+The app now requires BFF 0.25.0. No configuration or Python migration is needed. Required
+registration, leases, publication, and Realtime/GPT-Live call routes remain compatible. Retain
+the previous binary for rollback; rolling back to 0.24.0 disables optional-reservation clients.
+Verify the new binary version and authenticated health; avoid creating real jobs as an update
+smoke. See [VOICE_REPLIES.md](VOICE_REPLIES.md) for the exact API and retention limits.
