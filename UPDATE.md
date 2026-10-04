@@ -25,7 +25,7 @@ Set the required version, then download the binary and checksum file from the sa
 The examples use a temporary directory so an incomplete download never touches the service.
 
 ```sh
-VERSION=0.25.1
+VERSION=0.26.0
 OS=darwin       # darwin or linux, from the inventory
 ARCH=arm64      # arm64 or amd64, from the inventory
 REPO=https://github.com/FlorianCP/Agentic-Agency-Chat-App-BFF
@@ -193,3 +193,13 @@ idempotency during that window while preventing ordinary text turns from accumul
 retention. Register/Get/List consistently apply expiry; registration prunes eligible metadata
 before checking capacity. Uncancelled claimed optional jobs and all required jobs retain their existing lifecycle. No
 configuration migration or service dependency is introduced. See [VOICE_REPLIES.md](VOICE_REPLIES.md).
+
+
+## 12. Account subscription usage in 0.26.0
+
+The app now requires BFF 0.26.0. The additive authenticated `GET /v1/usage` route reads real
+Codex account quota through the existing opt-in Hermes interpreter. Capability
+`subscription_usage` reflects interpreter configuration only. No config migration is needed.
+OAuth refresh remains owned by Hermes; no API-key fallback is allowed. Update only the BFF
+with its existing backup/rollback procedure, then inspect the sanitized quota route without
+creating a model turn. See [USAGE.md](USAGE.md) for the exact window and freshness contract.

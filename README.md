@@ -52,6 +52,12 @@ step-by-step guide; this README only covers getting the right binary.
 - Version 0.25.1 expires unclaimed optional reservations after seven days and removes
   cancelled optional metadata after seven more days, bounding recovery and idempotency windows.
   Uncancelled claimed optional jobs and all required jobs retain their existing lifecycle.
+- Version 0.26.0 adds authenticated `GET /v1/usage` account-wide Codex subscription quota
+  and capability `subscription_usage`, using the existing opt-in Hermes interpreter. It reports
+  real remaining percentages and reset times, explicit window applicability, and bounded cache
+  freshness. Missing or stale values cannot establish healthy quota; there is no API-key fallback.
+  Apps using model selection and quota display require BFF `0.26.0` or newer. See
+  [USAGE.md](USAGE.md) for the exact account scope and operator verification.
 - Subscription voice uses the existing Hermes Codex credential resolver and has no API-key fallback.
   Local credential readiness does not establish model entitlement, quota, or billing treatment.
 
@@ -63,6 +69,7 @@ step-by-step guide; this README only covers getting the right binary.
 - `SETUP.md`, `UPDATE.md`, and `UNINSTALL.md` - current agent-facing service runbooks.
 - `LOGGING.md` and `DEBUGGING.md` - request correlation, remote log query, and incident workflows.
 - `VOICE_REPLIES.md` - durable native voice-reply coordination and publication API.
+- `USAGE.md` - account-wide subscription quota, explicit availability, and cache freshness contract.
 - `THIRD_PARTY_NOTICES.md` - third-party notices that must accompany the subscription broker.
 - `deploy/` - service templates: `space.rath.agency-bff.plist` (macOS launchd, RunAtLoad +
   KeepAlive) and `agency-bff.service` (Linux systemd user unit). Running the BFF under one of
