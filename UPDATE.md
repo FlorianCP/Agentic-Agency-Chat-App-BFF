@@ -25,7 +25,7 @@ Set the required version, then download the binary and checksum file from the sa
 The examples use a temporary directory so an incomplete download never touches the service.
 
 ```sh
-VERSION=0.26.0
+VERSION=0.26.1
 OS=darwin       # darwin or linux, from the inventory
 ARCH=arm64      # arm64 or amd64, from the inventory
 REPO=https://github.com/FlorianCP/Agentic-Agency-Chat-App-BFF
@@ -203,3 +203,15 @@ Codex account quota through the existing opt-in Hermes interpreter. Capability
 OAuth refresh remains owned by Hermes; no API-key fallback is allowed. Update only the BFF
 with its existing backup/rollback procedure, then inspect the sanitized quota route without
 creating a model turn. See [USAGE.md](USAGE.md) for the exact window and freshness contract.
+
+
+## 13. Correct pooled account quota in 0.26.1
+
+The app now requires BFF 0.26.1. Protocol 2 reports all configured official Codex OAuth
+accounts separately, including quota-exhausted accounts in cooldown. Identity hashes survive
+token refresh and round-robin selection; numeric quotas are not combined. The reader uses
+read-only account discovery and exact owner-targeted refresh without rotating selection.
+No configuration migration or gateway restart is needed. Update only the BFF using the existing
+backup procedure, then compare anonymous account IDs and per-account reset times through
+`GET /v1/usage`. Rolling back to 0.26.0 restores protocol 1 and disables pooled-quota clients.
+See [USAGE.md](USAGE.md) for bounds, refresh, and availability.

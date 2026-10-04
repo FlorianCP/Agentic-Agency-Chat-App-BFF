@@ -58,6 +58,12 @@ step-by-step guide; this README only covers getting the right binary.
   freshness. Missing or stale values cannot establish healthy quota; there is no API-key fallback.
   Apps using model selection and quota display require BFF `0.26.0` or newer. See
   [USAGE.md](USAGE.md) for the exact account scope and operator verification.
+- Version 0.26.1 corrects pooled subscription quota with protocol 2: each configured official
+  Codex OAuth account is reported separately, including exhausted accounts in cooldown. Anonymous
+  IDs survive token refresh and round-robin rotation; no account percentages are added together.
+  Reading quota does not rotate gateway credentials, and unknown/stale account data keeps the
+  overview unknown. Model-selection/quota clients now require BFF `0.26.1` or newer. See
+  [USAGE.md](USAGE.md) for the identity, refresh, and bounded cache contract.
 - Subscription voice uses the existing Hermes Codex credential resolver and has no API-key fallback.
   Local credential readiness does not establish model entitlement, quota, or billing treatment.
 

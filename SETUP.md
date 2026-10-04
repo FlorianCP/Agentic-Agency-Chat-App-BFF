@@ -6,7 +6,7 @@ for my chat app's live mode."* Follow this runbook top to bottom. It tells you h
 and tell the user whether installing is safe and what it means, (2) install, (3) configure,
 (4) verify, and (5) hand the user app-side instructions.**
 
-> **Status: v0.26.0 (2026-10-04).** Pairing, upload, media, managed storage, shared workspace,
+> **Status: v0.26.1 (2026-10-04).** Pairing, upload, media, managed storage, shared workspace,
 > foreground events, run relay, watches/inbox, remote logging, optional APNs push, and optional
 > subscription-authenticated Realtime calls are implemented. Version 0.21.0 adds request-correlation
 > and paginated diagnostics queries; private GPT-Live routes were added in version 0.20.0. `upload`, `media`, `events`,
@@ -263,7 +263,7 @@ Give the user exactly this, filled in:
 > - **URL:** `<the reachable base URL, e.g. https://klaushaus.tail1234.ts.net:8643>`
 > - **Pairing token:** `<the token printed by init>`
 >
-> Tap **Connect and verify**. The app requires version 0.26.0 or newer and will confirm the
+> Tap **Connect and verify**. The app requires version 0.26.1 or newer and will confirm the
 > required baseline:
 > file & voice-memo sending, rich media replies<if push configured>, and notifications when your
 > assistant finishes while the app is closed</if>.
@@ -296,3 +296,8 @@ Version 0.26.0 adds optional authenticated account-wide subscription quota via `
 and capability `subscription_usage`. It reuses the configured Hermes interpreter and OAuth
 resolver; no API-key fallback or quota estimate is supplied. Read [USAGE.md](USAGE.md) for
 window applicability, cache freshness, and bounded operator verification.
+
+Version 0.26.1 upgrades quota to protocol 2: each configured official Codex OAuth account
+is reported separately with an anonymous refresh-stable identity. This fixes round-robin
+pool ambiguity; account percentages are never added together. One unknown/stale account
+keeps the overview unknown. See [USAGE.md](USAGE.md).
