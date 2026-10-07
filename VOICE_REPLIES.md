@@ -98,3 +98,18 @@ restart recovery without directory-fsync power-loss guarantees. On restart, a ma
 file reconciles the publication/metadata seam. The phone resumes unfinished rendering while
 foregrounded; host job persistence does not provide background synthesis. Existing cached
 files remain playable offline, while new rendering/publication requires connectivity.
+
+## Hermes identity compatibility (BFF 0.26.2)
+
+Private GPT-Live call signaling and readiness use Hermes's supported
+`agent.codex_headers.codex_account_headers` API. Only the account and optional
+residency headers are accepted; malformed values or extra headers fail closed.
+Older Hermes versions can use the legacy account extractor when the current API
+is absent. This fixes the missing legacy export in Hermes 0.21.5 without changing
+voice selection, OAuth ownership, or the upstream endpoint. Readiness checks do
+not perform inference, but may resolve/refresh OAuth credentials.
+
+After an approved BFF-only update, verify `/v1/live/subscription/status` and one
+managed spoken reply on device. The standard Realtime subscription status route
+does not test this private GPT-Live integration. Preserve Hermes 0.21.5; no Hermes
+restart or rollback is needed for this BFF compatibility fix.

@@ -10,12 +10,13 @@ or entitlement. The empty default disables usage and optional subscription voice
 
 Protocol 2 reports every configured official Codex OAuth account separately, including exhausted
 accounts in cooldown. This matters for Hermes credential pools: round-robin selection changes
-which account serves a turn, so one default-resolver sample cannot represent the pool.
-No accounts' numerical quota percentages are added together. A client may use the lowest
-remaining percentage across all applicable windows only when every reported account is available
-and the whole inventory is known. One unavailable or stale account makes that overview unknown.
-These are shared account-wide subscription allowances, not app-local token counts or a claim
-about which account served a particular response.
+which account serves a turn, so one default-resolver sample cannot represent the pool. Accounts
+remain independent: never add their percentages or treat their limits as a shared pooled balance.
+A client can form a summary only from a complete inventory and available account snapshots; one
+unavailable or stale account makes the pool summary unknown. Apply window comparisons within each
+account before applying a product-specific account-selection rule, and retain the per-account
+details. These are shared account-wide subscription allowances, not app-local token counts or a
+claim about which account served a particular response.
 
 The helper reads Hermes' credential-pool records without calling `select()` or changing priorities
 or request counts. A pool with no records falls back to the Hermes singleton token store.

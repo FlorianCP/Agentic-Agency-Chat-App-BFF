@@ -25,7 +25,7 @@ Set the required version, then download the binary and checksum file from the sa
 The examples use a temporary directory so an incomplete download never touches the service.
 
 ```sh
-VERSION=0.26.1
+VERSION=0.26.2
 OS=darwin       # darwin or linux, from the inventory
 ARCH=arm64      # arm64 or amd64, from the inventory
 REPO=https://github.com/FlorianCP/Agentic-Agency-Chat-App-BFF
@@ -215,3 +215,12 @@ No configuration migration or gateway restart is needed. Update only the BFF usi
 backup procedure, then compare anonymous account IDs and per-account reset times through
 `GET /v1/usage`. Rolling back to 0.26.0 restores protocol 1 and disables pooled-quota clients.
 See [USAGE.md](USAGE.md) for bounds, refresh, and availability.
+
+## 14. Hermes 0.21.5 GPT-Live compatibility in 0.26.2
+
+Version 0.26.2 repairs the private GPT-Live account identity dependency in call
+signaling and readiness. Preserve the existing Hermes installation and config;
+replace and restart only the BFF after explicit production approval. Verify
+`GET /v1/live/subscription/status`, not only the standard Realtime status route,
+then one authorized managed spoken reply on device. Status may refresh OAuth;
+include this verification in the approved operation. See `VOICE_REPLIES.md`.
