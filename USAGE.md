@@ -1,4 +1,4 @@
-# Subscription account usage (0.26.1)
+# Subscription account usage (0.26.3)
 
 `GET /v1/usage` requires the BFF pairing bearer and returns HTTP 200 with a bounded quota
 snapshot, including when unavailable. Every response, including auth errors, has
@@ -12,11 +12,12 @@ Protocol 2 reports every configured official Codex OAuth account separately, inc
 accounts in cooldown. This matters for Hermes credential pools: round-robin selection changes
 which account serves a turn, so one default-resolver sample cannot represent the pool. Accounts
 remain independent: never add their percentages or treat their limits as a shared pooled balance.
-A client can form a summary only from a complete inventory and available account snapshots; one
-unavailable or stale account makes the pool summary unknown. Apply window comparisons within each
-account before applying a product-specific account-selection rule, and retain the per-account
-details. These are shared account-wide subscription allowances, not app-local token counts or a
-claim about which account served a particular response.
+The iOS overview computes each available account's bottleneck as the minimum remaining
+percentage across its applicable windows, then shows the maximum of those account bottlenecks.
+An unavailable or stale account does not hide a healthy available account; the overview marks
+partial availability and retains the per-account details. If no account is available, the
+overview is unavailable. Percentages are never added across accounts. These are shared account-wide
+subscription allowances, not app-local token counts or a claim about which account served a particular response.
 
 The helper reads Hermes' credential-pool records without calling `select()` or changing priorities
 or request counts. A pool with no records falls back to the Hermes singleton token store.
@@ -33,13 +34,17 @@ accounts are supported. More returns `account_limit_exceeded`, never a silently 
 
 The request goes only to `https://chatgpt.com/backend-api/wham/usage`, without redirects or
 inherited HTTP proxies. Resolver base URLs never redirect the request; Hermes generates the
-canonical account headers and the helper checks their identity before sending. Expiring tokens
-or a 401 trigger only Hermes-owned targeted refresh of that exact credential. The helper supplies
-both row ID and token hint, checks the current account before refresh, and checks the returned
-account afterward. It never calls a pool refresh without an exact target. A changed identity is
-unavailable. Hermes owns cross-process locking and atomic token-store writes; quota reading never
-rotates selection. Operator account additions/removals can take up to 60 seconds to appear in the
-fresh cache. No quota data is persisted.
+canonical account headers and the helper checks their identity before sending. Quota access is
+strictly read-only: every helper invocation reads the current Hermes access tokens into memory,
+then makes at most one usage request per non-dead account. It never refreshes access tokens,
+uses refresh tokens, invokes a credential resolver or pool loader, writes authentication state,
+or changes account selection. A 401 or 403 is `auth_rejected`; dead accounts remain visible as
+`credentials_unavailable` without a provider request. Expired access tokens are sent as currently
+stored and may be rejected by the provider; they never trigger refresh. A later poll automatically
+picks up tokens independently rotated by Hermes. The account-header identity must match the
+snapshotted token identity before any request. Operator account additions/removals or independently
+rotated tokens can take up to 60 seconds to appear in the fresh cache. No quota data or credentials
+are persisted by this helper. Hermes retains sole responsibility for credential lifecycle.
 
 ## Response
 
@@ -112,9 +117,8 @@ one helper fetch; waiting requests can cancel. A canceled fetch does not poison 
 cache. Per-account stale retention is keyed only by its stable ID and never transfers to another
 account. The helper has an 18-second deadline with at most four parallel account reads; provider
 requests have at most six seconds each. The BFF enforces a 20-second process lifetime and 64 KiB
-sanitized output. Targeted Hermes refresh can consume the budget and degrade to unavailable
-rather than exceed that deadline. Auth remains the existing constant-time pairing check and
-failed-auth limiter.
+sanitized output. No authentication refresh work consumes this deadline. Auth remains the existing
+constant-time pairing check and failed-auth limiter.
 
 ## Upstream compatibility and operators
 
@@ -127,7 +131,7 @@ published stable OpenAI API. Schema drift becomes unavailable. Primary reference
 [Hermes account usage](https://github.com/NousResearch/hermes-agent/blob/main/agent/account_usage.py),
 and [Hermes credential pool](https://github.com/NousResearch/hermes-agent/blob/main/agent/credential_pool.py).
 
-After a backed-up BFF-only update, confirm version `0.26.1`, authenticated capabilities, and one
+After a backed-up BFF-only update, confirm version `0.26.3`, authenticated capabilities, and one
 `GET /v1/usage`. Keep the bearer in a private curl config or a process reading the existing private
 pairing file; do not put it in shell history or print raw auth state. Inspect only anonymous IDs,
 statuses, durations, remaining percentages and reset/fetch timestamps. Compare anonymous account

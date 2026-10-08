@@ -11,6 +11,13 @@ step-by-step guide; this README only covers getting the right binary.
 
 ## Versioning
 
+- Version 0.26.3 makes subscription quota strictly read-only. Each poll uses the current
+  Hermes-owned access token once per account, never refreshes credentials or writes auth
+  state, and picks up independently rotated Hermes tokens on a later poll. Dead or rejected
+  accounts remain individually unavailable; healthy available accounts still contribute to
+  the iOS overview. Subscription voice retains its existing Hermes credential lifecycle.
+  See [USAGE.md](USAGE.md).
+
 - Version 0.26.2 restores private GPT-Live voice replies and readiness with Hermes
   0.21.5 using its supported account/residency identity headers. See
   [VOICE_REPLIES.md](VOICE_REPLIES.md) for compatibility and verification.

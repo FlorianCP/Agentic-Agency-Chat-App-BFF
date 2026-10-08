@@ -25,7 +25,7 @@ Set the required version, then download the binary and checksum file from the sa
 The examples use a temporary directory so an incomplete download never touches the service.
 
 ```sh
-VERSION=0.26.2
+VERSION=0.26.3
 OS=darwin       # darwin or linux, from the inventory
 ARCH=arm64      # arm64 or amd64, from the inventory
 REPO=https://github.com/FlorianCP/Agentic-Agency-Chat-App-BFF
@@ -224,3 +224,14 @@ replace and restart only the BFF after explicit production approval. Verify
 `GET /v1/live/subscription/status`, not only the standard Realtime status route,
 then one authorized managed spoken reply on device. Status may refresh OAuth;
 include this verification in the approved operation. See `VOICE_REPLIES.md`.
+
+## 15. Read-only subscription quota in 0.26.3
+
+The app now requires BFF 0.26.3. Quota polls use current Hermes access tokens without
+refreshing, selecting pool credentials, invoking a credential resolver, or writing auth
+state. This supersedes the owner-targeted quota refresh described for 0.26.1 above.
+Dead accounts remain unavailable without a provider request; a 401 or 403 is `auth_rejected`.
+A later poll picks up tokens independently rotated by Hermes. Healthy accounts still
+contribute to the iOS overview. No config migration is needed, and subscription voice
+credential refresh behavior remains unchanged. Update only the BFF; do not restart or
+change Hermes for this feature. See [USAGE.md](USAGE.md).

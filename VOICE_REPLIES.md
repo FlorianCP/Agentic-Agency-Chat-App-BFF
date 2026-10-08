@@ -107,7 +107,9 @@ residency headers are accepted; malformed values or extra headers fail closed.
 Older Hermes versions can use the legacy account extractor when the current API
 is absent. This fixes the missing legacy export in Hermes 0.21.5 without changing
 voice selection, OAuth ownership, or the upstream endpoint. Readiness checks do
-not perform inference, but may resolve/refresh OAuth credentials.
+not perform inference, but may resolve/refresh OAuth credentials. For this
+repository's personal production services, follow the approval rule in `AGENTS.md`
+before invoking them.
 
 After an approved BFF-only update, verify `/v1/live/subscription/status` and one
 managed spoken reply on device. The standard Realtime subscription status route
