@@ -6,10 +6,11 @@ for my chat app's live mode."* Follow this runbook top to bottom. It tells you h
 and tell the user whether installing is safe and what it means, (2) install, (3) configure,
 (4) verify, and (5) hand the user app-side instructions.**
 
-> **Status: v0.26.3 (2026-10-08).** Pairing, upload, media, managed storage, shared workspace,
-> foreground events, run relay, watches/inbox, remote logging, optional APNs push, and optional
-> subscription-authenticated Realtime calls are implemented. Version 0.21.0 adds request-correlation
-> and paginated diagnostics queries; private GPT-Live routes were added in version 0.20.0. `upload`, `media`, `events`,
+> **Status: v0.27.0 (2026-10-11).** Pairing, upload, media, managed storage, shared workspace,
+> foreground events, run relay, watches/inbox, remote logging, optional APNs push, read-only Codex
+> and Claude subscription usage, and optional subscription-authenticated Realtime calls are
+> implemented. Version 0.21.0 adds request-correlation and paginated diagnostics queries; private
+> GPT-Live routes were added in version 0.20.0. `upload`, `media`, `events`,
 > `run_relay`, `logs`, `storage`, and `share` are the required live-mode baseline; only `push` may
 > truthfully report false. Subscription calls and previews remain disabled until an operator sets
 > `realtime_subscription.hermes_python` to the absolute Hermes Python executable path.
@@ -239,6 +240,15 @@ curl -s -H "Authorization: Bearer <PAIRING_TOKEN>" http://127.0.0.1:8643/v1/stor
 agency-bff status        # config sanity + gateway reachability, secrets redacted
 ```
 
+When `capabilities.subscription_usage` is true, verify Claude quota with one authenticated,
+read-only `GET /v1/usage?provider=anthropic`, using the existing pairing bearer through a private
+secret-handling path. Confirm `provider` is `anthropic`; inspect only sanitized labels, statuses,
+window states, remaining percentages, and reset/fetch times. Anthropic labels identify credential
+slots, not verified distinct provider accounts, so do not add their percentages together. The
+capability means only that the Hermes interpreter is configured. The quota read uses existing
+official Claude OAuth credentials without refreshing tokens or changing account selection, and
+has no API-key or custom-route fallback. A chat turn is unnecessary.
+
 Also verify from off-box (the phone's network path) that `/health` responds at the URL you will
 give the user. Kill the process once and prove the service manager restarts it. Confirm reboot
 survival when the user permits a reboot test; otherwise report that `RunAtLoad`/enablement was
@@ -263,7 +273,7 @@ Give the user exactly this, filled in:
 > - **URL:** `<the reachable base URL, e.g. https://klaushaus.tail1234.ts.net:8643>`
 > - **Pairing token:** `<the token printed by init>`
 >
-> Tap **Connect and verify**. The app requires version 0.26.3 or newer and will confirm the
+> Tap **Connect and verify**. The app requires version 0.27.0 or newer and will confirm the
 > required baseline:
 > file & voice-memo sending, rich media replies<if push configured>, and notifications when your
 > assistant finishes while the app is closed</if>.
@@ -301,12 +311,3 @@ Version 0.26.1 upgrades quota to protocol 2: each configured official Codex OAut
 is reported separately with an anonymous refresh-stable identity. This fixes round-robin
 pool ambiguity; account percentages are never added together. One unknown/stale account
 keeps the overview unknown. See [USAGE.md](USAGE.md).
-
-## Read-only quota in 0.26.3
-
-Quota polls read current Hermes access tokens and never refresh or write authentication
-state. Dead accounts are unavailable without a provider call; 401/403 responses are
-`auth_rejected`. A later poll picks up tokens independently rotated by Hermes. Available
-accounts remain usable in the iOS quota overview even when another account is unavailable.
-This change needs no config migration and leaves subscription voice credential handling
-unchanged. See [USAGE.md](USAGE.md).

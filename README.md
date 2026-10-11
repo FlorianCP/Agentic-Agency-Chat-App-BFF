@@ -11,6 +11,12 @@ step-by-step guide; this README only covers getting the right binary.
 
 ## Versioning
 
+- Version 0.27.0 adds the authenticated, read-only
+  `GET /v1/usage?provider=anthropic` route for sanitized Claude OAuth credential-slot/window quota.
+  Reads use existing credentials without refresh or credential-pool selection, with no API-key
+  or custom-route fallback. It requires the existing configured Hermes interpreter; no gateway
+  update is needed. See [USAGE.md](USAGE.md).
+
 - Version 0.26.3 makes subscription quota strictly read-only. Each poll uses the current
   Hermes-owned access token once per account, never refreshes credentials or writes auth
   state, and picks up independently rotated Hermes tokens on a later poll. Dead or rejected

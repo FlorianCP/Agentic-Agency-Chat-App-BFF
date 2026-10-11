@@ -25,7 +25,7 @@ Set the required version, then download the binary and checksum file from the sa
 The examples use a temporary directory so an incomplete download never touches the service.
 
 ```sh
-VERSION=0.26.3
+VERSION=0.27.0
 OS=darwin       # darwin or linux, from the inventory
 ARCH=arm64      # arm64 or amd64, from the inventory
 REPO=https://github.com/FlorianCP/Agentic-Agency-Chat-App-BFF
@@ -225,13 +225,18 @@ replace and restart only the BFF after explicit production approval. Verify
 then one authorized managed spoken reply on device. Status may refresh OAuth;
 include this verification in the approved operation. See `VOICE_REPLIES.md`.
 
-## 15. Read-only subscription quota in 0.26.3
+## 15. Claude subscription usage in 0.27.0
 
-The app now requires BFF 0.26.3. Quota polls use current Hermes access tokens without
-refreshing, selecting pool credentials, invoking a credential resolver, or writing auth
-state. This supersedes the owner-targeted quota refresh described for 0.26.1 above.
-Dead accounts remain unavailable without a provider request; a 401 or 403 is `auth_rejected`.
-A later poll picks up tokens independently rotated by Hermes. Healthy accounts still
-contribute to the iOS overview. No config migration is needed, and subscription voice
-credential refresh behavior remains unchanged. Update only the BFF; do not restart or
-change Hermes for this feature. See [USAGE.md](USAGE.md).
+Version 0.27.0 adds authenticated, read-only `GET /v1/usage?provider=anthropic` alongside the
+existing Codex usage route. It reads existing official Claude OAuth credentials and returns
+sanitized credential-slot/window usage without refreshing tokens or changing credential selection;
+there is no API-key or custom-route fallback. Anthropic slot labels do not establish distinct
+provider accounts, so do not add their percentages together. `capabilities.subscription_usage`
+still means only that the Hermes interpreter is configured, not that credentials or quota are
+available.
+
+No configuration migration or Hermes restart is needed. After an approved BFF-only update and
+backup, verify one GET through the existing private pairing bearer. Inspect only `provider`,
+availability, anonymous credential-slot labels, window statuses, remaining percentages, and
+reset/fetch times. Do not create a chat turn for verification. Rolling back to 0.26.3 removes
+Claude usage while retaining the existing Codex route. See [USAGE.md](USAGE.md).
