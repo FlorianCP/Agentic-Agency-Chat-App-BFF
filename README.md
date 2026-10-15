@@ -11,6 +11,8 @@ step-by-step guide; this README only covers getting the right binary.
 
 ## Versioning
 
+- Version 0.27.2: Usage reader honors Hermes v0.22.0 `HERMES_DATA_DIR_SUFFIX` homes; an explicit `HERMES_HOME` still takes precedence.
+
 - Version 0.27.1: Usage policy reader works without PyYAML (Hermes v0.22.0) and fails closed when the Hermes config cannot be read.
 
 - Version 0.27.0 adds the authenticated, read-only

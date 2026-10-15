@@ -240,3 +240,15 @@ backup, verify one GET through the existing private pairing bearer. Inspect only
 availability, anonymous credential-slot labels, window statuses, remaining percentages, and
 reset/fetch times. Do not create a chat turn for verification. Rolling back to 0.26.3 removes
 Claude usage while retaining the existing Codex route. See [USAGE.md](USAGE.md).
+
+## 16. Read-only Hermes usage compatibility in 0.27.1
+
+Version 0.27.1 reads usage policy without PyYAML through Hermes' ruamel.yaml parser and fails
+closed when Hermes config is unreadable or invalid. No configuration change is needed.
+
+## 17. Hermes data-directory suffix compatibility in 0.27.2
+
+Version 0.27.2 honors literal `HERMES_DATA_DIR_SUFFIX` homes for usage config, auth, and
+profile-to-global fallback while explicit `HERMES_HOME` takes precedence. Hermes v0.21.x ignores
+`HERMES_DATA_DIR_SUFFIX`, so leave it unset in the BFF service environment on v0.21.x hosts or
+the BFF may read a different home than Hermes. No configuration change is needed.
