@@ -154,3 +154,31 @@ unlinks the active BFF daily file on POSIX, the writer reopens the path on its n
 records remain retrievable. Records written before the unlink are still lost with that file.
 Confirm `limits.logs_max_age_days` and `limits.logs_max_total_bytes` in config before concluding
 that missing records were never emitted.
+
+## Trace a work desk element to Hermes
+
+Query device logs with the Hermes session id using the session filter above, then inspect entries
+whose `category` is `workDesk`. Their message contains a JSON event after the correlation prefix.
+Find the widget id in `widget_ids`; `widget_applied` gives its operation/type/title. The same entry's
+`message_id`, zero-based Markdown `block_index`, and one-based `update_seq` identify the assistant
+message and desk block in that session's Hermes history. If the source id was optimistic/local,
+find `workDesk.message_id_resolved` in the same session with `local_id` equal to that id, then
+use its canonical `message_id` to select the Hermes assistant message. The original block_index
+continues to select the same Markdown block. The join appears after the normal history refresh
+or reopening the desk; before then the canonical id is pending. `state_hash` joins composed-state parts
+and turns without duplicating unchanged state.
+
+`decode_failed` and `unsupported` retain up to 4 KiB raw failure data. `state_composed` records the
+locally overlaid state (up to 16 KiB in numbered parts); collapse/remove/archive choices cannot be
+recovered from Hermes alone. `change_sent` includes at most 1 KiB of the selected-card request.
+Successful widget payloads remain in Hermes; diagnostics retain only operations, ids, and titles.
+`media_prefetch` reports individual downloads or unavailable references, bytes and duration.
+`media_cache_hits` reports one aggregate count and byte total for the pass. General log query examples above remain read-only; no service restart is needed.
+
+Desk correlation recipe (read-only): query the session's workDesk entries, select the widget's
+`widget_applied` event, resolve any local `message_id` using `message_id_resolved.local_id`,
+then fetch that session's Hermes history and select the resolved message id. Parse its Markdown
+block at `block_index`. Preserve the session filter throughout; ids alone are not a global join.
+Pending joins retain only the local id, content digest and later-identical-reply count across chat
+navigation. On the next history load, repeated replies match from the end of that session history,
+preventing an older identical reply from taking a new turn's id.

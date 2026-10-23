@@ -11,6 +11,17 @@ step-by-step guide; this README only covers getting the right binary.
 
 ## Versioning
 
+- Version 0.28.0: Hermes v0.22.5 readiness and the Agentic Agency Hermes plugin channel.
+  Adds `POST /v1/plugin/events` behind a separate plugin secret (`plugin.secret` in the BFF
+  config; the app pairing token is rejected there and the plugin secret on app routes). The
+  `agentic_agency` Hermes plugin reports served runtime and reasoning, which the BFF adds to
+  relayed runs (runtime `attribution: "plugin"`, `reasoning.available` with `source: "plugin"`)
+  and serves via `GET /v1/runs/{run_id}/runtime`; capabilities gain `plugin` and `run_runtime`.
+  Approval and clarify pushes and Live Activities carry the prompt identity
+  (`prompt_id`, `execution_generation`, `prompt_kind`); clarify questions use category
+  `AGENT_QUESTION`; `queued` and `unknown` runs stay non-terminal and `unknown` sends one
+  attention push. Works against Hermes v0.22.2 and v0.22.5. See [PLUGIN.md](PLUGIN.md).
+
 - Version 0.27.2: Usage reader honors Hermes v0.22.0 `HERMES_DATA_DIR_SUFFIX` homes; an explicit `HERMES_HOME` still takes precedence.
 
 - Version 0.27.1: Usage policy reader works without PyYAML (Hermes v0.22.0) and fails closed when the Hermes config cannot be read.
@@ -97,6 +108,7 @@ step-by-step guide; this README only covers getting the right binary.
 - `LOGGING.md` and `DEBUGGING.md` - request correlation, remote log query, and incident workflows.
 - `VOICE_REPLIES.md` - durable native voice-reply coordination and publication API.
 - `USAGE.md` - account-wide subscription quota, explicit availability, and cache freshness contract.
+- `PLUGIN.md` - the Hermes plugin channel, its secret, and install/update steps.
 - `THIRD_PARTY_NOTICES.md` - third-party notices that must accompany the subscription broker.
 - `deploy/` - service templates: `space.rath.agency-bff.plist` (macOS launchd, RunAtLoad +
   KeepAlive) and `agency-bff.service` (Linux systemd user unit). Running the BFF under one of

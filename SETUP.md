@@ -21,7 +21,8 @@ and tell the user whether installing is safe and what it means, (2) install, (3)
 - **Back up before you modify** anything that existed before you started (see section 7).
 - Never print, log, or send anywhere: the gateway API key, the pairing token hash, or APNs keys.
   The **pairing token plaintext** is shown to the user exactly once, at generation.
-- Do not stop, restart, or reconfigure the Hermes gateway itself. The BFF sits beside it.
+- The BFF sits beside Hermes. Plugin installation/configuration requires a gateway restart;
+  obtain explicit approval before each production change or restart.
 - If any step fails in a way this runbook does not cover, stop and report rather than improvise
   destructive fixes.
 
@@ -311,3 +312,15 @@ Version 0.26.1 upgrades quota to protocol 2: each configured official Codex OAut
 is reported separately with an anonymous refresh-stable identity. This fixes round-robin
 pool ambiguity; account percentages are never added together. One unknown/stale account
 keeps the overview unknown. See [USAGE.md](USAGE.md).
+
+## Agentic Agency Hermes plugin (WP56)
+
+Follow [PLUGIN.md](PLUGIN.md#configuration-and-installation) to generate a separate
+secret (`openssl rand -hex 32`), write it to BFF `plugin.secret` and
+`$HERMES_HOME/agentic_agency/plugin.json` with 0600 permissions, and install/enable
+`agentic_agency` from the public plugin repository, pinned by full commit using
+[PLUGIN.md](PLUGIN.md#configuration-and-installation) and
+[the plugin README](../hermes-plugin/README.md). Enable
+`plugins.stream_reasoning_deltas: true`. Obtain explicit approval before writing
+production config or restarting BFF/Hermes on a production host. Verify Connected and
+version through BFF capabilities, then verify a watched run's runtime receipt.

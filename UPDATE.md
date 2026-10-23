@@ -252,3 +252,16 @@ Version 0.27.2 honors literal `HERMES_DATA_DIR_SUFFIX` homes for usage config, a
 profile-to-global fallback while explicit `HERMES_HOME` takes precedence. Hermes v0.21.x ignores
 `HERMES_DATA_DIR_SUFFIX`, so leave it unset in the BFF service environment on v0.21.x hosts or
 the BFF may read a different home than Hermes. No configuration change is needed.
+
+## Update the Hermes companion plugin
+
+Use [PLUGIN.md](PLUGIN.md#configuration-and-installation) to generate/rotate the
+plugin secret (`openssl rand -hex 32`) in BFF `plugin.secret` and
+`$HERMES_HOME/agentic_agency/plugin.json` (0600). Update/install and enable the
+`agentic_agency` public release pinned by full commit using
+[PLUGIN.md](PLUGIN.md#configuration-and-installation) and
+[its README](../hermes-plugin/README.md). A pinned update uses intentional forced
+reinstallation with the new full commit. Keep
+`plugins.stream_reasoning_deltas: true`, then verify Connected/version and runtime
+recovery. Every production configuration change and BFF/Hermes restart on
+a production host requires the operator's explicit approval for that action.

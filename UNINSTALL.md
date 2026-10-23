@@ -102,3 +102,17 @@ Then tell the user:
 > and token on the phone). Everything else in the app keeps working. You can reinstall anytime
 > - the setup guide is `SETUP.md` in the public release repository at
 > https://github.com/FlorianCP/Agentic-Agency-Chat-App-BFF.
+
+## Remove the Hermes companion plugin
+
+For the intended profile (set `HERMES_HOME` explicitly), run
+`hermes plugins disable agentic_agency`, then `hermes plugins remove agentic_agency`.
+See [hermes-plugin/README.md](../hermes-plugin/README.md) and [PLUGIN.md](PLUGIN.md). Remove
+`$HERMES_HOME/agentic_agency/plugin.json`, remove BFF's `plugin` config object,
+and remove `plugins.stream_reasoning_deltas` only if no other plugin needs it.
+Restart BFF and Hermes to unload the channel. On a production host, obtain the operator's explicit
+approval before each production config change and restart. When retaining a
+working installation instead, rotate the shared secret with `openssl rand -hex 32`
+and write both private 0600 configs using [PLUGIN.md](PLUGIN.md#configuration-and-installation).
+Remove `<data_dir>/state/runtime_receipts.json` with the rest of BFF state for a
+complete data removal.
