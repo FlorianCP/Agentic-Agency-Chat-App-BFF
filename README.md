@@ -11,6 +11,12 @@ step-by-step guide; this README only covers getting the right binary.
 
 ## Versioning
 
+- Version 0.29.0: scheduled and proactive deliveries with Hermes plugin v0.2.0 on Hermes
+  v0.22.5+. Adds `POST /v1/plugin/deliveries` and `POST /v1/plugin/media` behind the plugin
+  secret, `kind: "delivery"` inbox entries, a `delivery.received` event, rate-limited delivery
+  pushes (category `delivery`), and `features.deliveries` plus per-profile `delivery_platform` /
+  `inbox_session_id` in capabilities. Reinstall the plugin per UPDATE.md section 21; no new
+  secret or BFF config.
 - Version 0.28.2: `GET /v1/inbox` returns `"entries": []` instead of `null` when nothing is new, which
   the app could not read. No configuration change.
 

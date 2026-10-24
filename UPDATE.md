@@ -272,8 +272,9 @@ See [PLUGIN.md](PLUGIN.md#configuration-and-installation) for the private-config
 channel contract, and update details, and [the public plugin README](https://github.com/FlorianCP/Agentic-Agency-Chat-App-Hermes-Plugin)
 for plugin installation details.
 
-Current plugin release: **v0.1.0**, commit
-`0032b87f68782d573114a8f9fbca04ae7afe76a7`.
+Plugin release for 0.28.x: **v0.1.0**, commit
+`0032b87f68782d573114a8f9fbca04ae7afe76a7`. When updating straight to 0.29.0 or newer, install
+the plugin release named in section 21 in step 4 instead and verify its version there.
 
 1. Inventory every Hermes profile the BFF serves, including multiplexed profiles. Resolve each
    profile's `HERMES_HOME` explicitly. Obtain the operator's explicit approval for each production
@@ -321,3 +322,36 @@ No behaviour change; runbook corrections only. The required 0.28.0 migration in 
 
 `GET /v1/inbox` now returns `"entries": []` instead of `null` when nothing is new, which the app
 could not read. No configuration change; replace the binary as in sections 2-4.
+
+## 21. Scheduled and proactive deliveries in 0.29.0 (plugin 0.2.0)
+
+BFF 0.29.0 pairs with Hermes plugin **v0.2.0**, commit `f8871f58b66ceb7f45afd1e203b3f1bde47685c8`, on Hermes v0.22.5
+or newer. Scheduled jobs created from an app chat then deliver into that chat with a push, jobs
+without a target land in an "Assistant" inbox chat, and the agent can message the user on its
+own (`agentic_agency_notify`). See [PLUGIN.md](PLUGIN.md#scheduled-and-proactive-deliveries-wp66).
+
+No new secret or BFF config is needed; the 0.28.0 plugin channel from section 18 is reused.
+
+1. Obtain the operator's explicit approval for the BFF update, each plugin reinstallation, and
+   each gateway restart on a production host.
+2. Replace the BFF binary as in sections 2-4.
+3. For EVERY served profile (set `HERMES_HOME` explicitly), reinstall the pinned plugin release:
+
+   ```sh
+   hermes plugins install FlorianCP/Agentic-Agency-Chat-App-Hermes-Plugin --ref f8871f58b66ceb7f45afd1e203b3f1bde47685c8 --no-enable --force
+   hermes plugins doctor agentic_agency --ci
+   hermes plugins enable agentic_agency
+   ```
+
+   If a profile restricts toolsets in `platform_toolsets`, merge `agentic_agency` into the
+   relevant lists and keep `cronjob` for `api_server`; never replace the operator's lists.
+4. Restart every affected Hermes gateway after approval. The platform loads only at gateway start.
+5. Verify `GET /v1/bff/capabilities`: `features.deliveries: true`, and for EVERY expected profile in
+   `plugin.profiles` version `0.2.0`, `delivery_platform: true` and a fresh `last_seen`.
+   `inbox_session_id` stays null until the first delivery to the inbox creates that chat.
+6. Optional live check: in an app chat, ask the assistant to send a short test message in one
+   minute. It must arrive in that chat with a push and a "Scheduled" label. Remove the test job.
+
+New private state: BFF `<data_dir>/state/deliveries.json` and `<files_dir>/outbox/deliveries/`;
+plugin `$HERMES_HOME/agentic_agency/spool/`, `state.json` and lock files.
+

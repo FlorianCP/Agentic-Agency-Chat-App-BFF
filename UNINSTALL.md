@@ -114,5 +114,7 @@ Restart BFF and Hermes to unload the channel. On a production host, obtain the o
 approval before each production config change and restart. When retaining a
 working installation instead, rotate the shared secret with `openssl rand -hex 32`
 and write both private 0600 configs using [PLUGIN.md](PLUGIN.md#configuration-and-installation).
-Remove `<data_dir>/state/runtime_receipts.json` with the rest of BFF state for a
-complete data removal.
+Remove `<data_dir>/state/runtime_receipts.json`, `<data_dir>/state/deliveries.json` and
+`<files_dir>/outbox/deliveries/` with the rest of BFF state for a complete data removal. For each
+profile also remove `$HERMES_HOME/agentic_agency/` (spool, `state.json`, locks). The "Assistant"
+inbox chat stays in Hermes history like any other chat; the user can delete it in the app.

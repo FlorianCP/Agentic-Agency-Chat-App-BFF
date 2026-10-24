@@ -1,6 +1,6 @@
 # Hermes companion channel (WP56 first slice)
 
-Release: BFF 0.28.0 with Hermes plugin 0.1.0.
+Release: BFF 0.29.0 with Hermes plugin 0.2.0 (the channel itself since BFF 0.28.0 and plugin 0.1.0).
 
 The stdlib-only `agentic_agency` Hermes plugin restores model attribution and live
 reasoning when the gateway omits them. The BFF continues to own app pairing,
@@ -52,8 +52,8 @@ PY
 Install the reviewed public plugin release for the intended profile, pinned by
 its full commit (replace `FULL_40_CHARACTER_COMMIT` with that release's commit):
 
-Current release: **v0.1.0**, commit `0032b87f68782d573114a8f9fbca04ae7afe76a7`
-(paired with BFF 0.28.0).
+Current release: **v0.2.0**, commit `f8871f58b66ceb7f45afd1e203b3f1bde47685c8`
+(paired with BFF 0.29.0).
 
 ```sh
 hermes plugins install 'https://github.com/FlorianCP/Agentic-Agency-Chat-App-Hermes-Plugin.git' --ref FULL_40_CHARACTER_COMMIT --no-enable
@@ -154,3 +154,114 @@ from BFF config. Remove `plugins.stream_reasoning_deltas` only if no other plugi
 uses it. Restart the BFF and Hermes after the operator approves when on a production host. Remove
 `runtime_receipts.json` and `plugin_bindings.json` when deleting BFF data, or retain
 them for their normal seven day recovery window. Never delete other plugins' files or configuration.
+
+## Scheduled and proactive deliveries (WP66)
+
+Release: BFF 0.29.0 with Hermes plugin 0.2.0, Hermes v0.22.5 or later. On older
+hosts the plugin keeps its telemetry role and does not register the platform.
+
+Hermes cron delivers only through messaging platforms, and the `api_server`
+platform the app uses is request/response only. The plugin therefore registers
+an `agentic_agency` messaging platform. Cron jobs (and the plugin's
+`agentic_agency_notify` tool) deliver through it like through Telegram.
+
+### Targets
+
+- `agentic_agency:<hermes session id>` delivers into that app chat. A job created
+  from an app chat without `deliver` (or with `origin`) is rewritten to the
+  current chat by the plugin's `tool_request` middleware on `cronjob_manage`; an
+  update is rewritten only for an explicit `origin`, so it never moves a job that
+  another channel created.
+- `agentic_agency` (bare) or `agentic_agency:inbox` delivers into the profile's
+  "Assistant" inbox chat. The plugin creates that `api_server` session on first
+  use and remembers its id in `$HERMES_HOME/agentic_agency/state.json`.
+- Unknown, foreign-profile, or non-`api_server` session ids are rejected by the
+  platform's target validation, so a job cannot write into another channel.
+
+### Transcript row (source of truth for the timeline)
+
+The adapter writes each delivery into the target session's Hermes transcript with
+`SessionDB.append_completion_note` (idempotent per delivery id, refused during a
+live turn and retried by the plugin's spool afterwards). The row is
+`role=user`, `display_kind=agentic_agency_delivery`, and its content is a header
+line followed by the delivered text, which may contain `media://` references:
+
+```text
+[Delivered by the assistant: scheduled job "Morning briefing"]
+Good morning! ...
+```
+
+Agent-initiated messages use the header `[Delivered by the assistant]`. A file
+attachment that Hermes hands over separately (cron `MEDIA:` tags) becomes its own
+row with the header `[Delivered by the assistant: attachment]` and a `media://`
+reference as its text. The
+model sees the row on the next turn, so the agent can refer to what it sent. The
+app reads it through the normal session history: `GET /api/sessions/{id}/messages`
+exposes `display_kind`. The app strips the header and renders the row as an
+assistant message labeled with the job name. Cron's own `Cronjob Response:`
+wrapper is removed by the plugin before writing.
+
+### Plugin to BFF
+
+The plugin spools each delivery durably on disk
+(`$HERMES_HOME/agentic_agency/spool/`, 0600) before `send()` returns, then a worker
+writes the transcript row and notifies the BFF. Both steps are idempotent on the
+delivery id and retried with backoff; Hermes cron itself is at-most-once.
+
+`POST /v1/plugin/deliveries` (plugin secret, 16 KiB body limit):
+
+```json
+{
+  "delivery_id": "8b1d...",
+  "profile": "default",
+  "session_id": "20261025_071500_ab12cd",
+  "inbox": false,
+  "source": "cron",
+  "job_id": "a1b2c3",
+  "job_name": "Morning briefing",
+  "preview": "Good morning! ...",
+  "created_at": 1761376500
+}
+```
+
+- `delivery_id`: 1-128 characters `[A-Za-z0-9._:-]`. `source`: `cron` or `agent`.
+  `job_id`/`job_name` are optional (absent for agent messages). `preview` is plain
+  text, at most 512 characters; it is used only for the push body.
+- Responses: 200 `{"delivery_id", "cursor", "duplicate": bool}`; a repeated
+  delivery id returns the original cursor with `duplicate: true` and sends no push.
+  400 invalid fields, 401 wrong credential, 404 plugin channel disabled, 413 too large.
+- `notify` (optional bool, default true): `false` records the receipt, inbox entry
+  and event but sends no push. Attachment rows use it so a text delivery and its
+  files produce one banner.
+- `POST /v1/plugin/media?name=<file name>` (plugin secret, raw body up to the BFF
+  upload limit) copies a file into the media outbox and returns
+  `{"ref": "media://deliveries/<id>/<name>"}`.
+
+Media: Hermes v0.22.5 hands cron `MEDIA:` attachments to the adapter as separate
+calls without job or execution identity, so the plugin cannot attach them to the
+preceding text row. The plugin's prompt section therefore asks the agent to share
+files through the app's `media://` outbox convention inside the answer text (one
+atomic row). Stray `MEDIA:` attachments still arrive, each as its own attachment
+row with `notify: false`.
+
+The BFF keeps a receipt store `<data_dir>/state/deliveries.json` (0600, 500
+receipts, 30 days). For each new delivery it:
+
+1. appends an inbox entry `{"kind": "delivery", "delivery_id", "session_id",
+   "profile", "status": "delivered", "completed_at", "cursor"}` (`run_id` is
+   empty for deliveries; run entries keep `kind: "run"`);
+2. broadcasts `delivery.received` on `GET /v1/events` with `delivery_id`,
+   `session_id`, `profile`, `inbox`, `source`, `job_name`, `notify`;
+3. pushes to every registered device with category `delivery`, top-level
+   `session_id`, `delivery_id`, `profile`, title = job name (or "Assistant"), body =
+   preview when the device opted into previews, else a static line. Pushes for the
+   same job collapse (`apns-collapse-id`).
+
+Anti-spam: at most one delivery push per job per 5 minutes and 20 delivery pushes
+per hour overall. Held-back deliveries still create the inbox entry and event, so
+the chat turns unread without another banner. Hermes already skips empty and
+`[SILENT]` cron results.
+
+Capabilities add `features.deliveries: true` and, per plugin profile,
+`delivery_platform` (bool) and `inbox_session_id` (string or null), reported by
+the plugin's `hello`.
