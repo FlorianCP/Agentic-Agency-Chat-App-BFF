@@ -1,4 +1,4 @@
-# Agency BFF — Setup Runbook (for agents)
+# Agency BFF - Setup Runbook (for agents)
 
 **Audience:** you are an AI agent (typically the Hermes agent itself, running on the gateway
 host) that a user has pointed at this file with a request like *"install the required companion
@@ -6,7 +6,7 @@ for my chat app's live mode."* Follow this runbook top to bottom. It tells you h
 and tell the user whether installing is safe and what it means, (2) install, (3) configure,
 (4) verify, and (5) hand the user app-side instructions.**
 
-> **Status: v0.27.0 (2026-10-11).** Pairing, upload, media, managed storage, shared workspace,
+> **Status: v0.28.0 (2026-10-24).** Pairing, upload, media, managed storage, shared workspace,
 > foreground events, run relay, watches/inbox, remote logging, optional APNs push, read-only Codex
 > and Claude subscription usage, and optional subscription-authenticated Realtime calls are
 > implemented. Version 0.21.0 adds request-correlation and paginated diagnostics queries; private
@@ -41,8 +41,8 @@ Before doing anything, give the user this assessment in your own words:
   gateway API has no push channel or file-attachment transport, so the companion closes those
   gaps locally.
 - **What it gets access to:** its own data directory (uploads and reply media), a Hermes gateway
-  API key you configure for it (used only over localhost, to watch run completion), and — only if
-  the user wants push — an Apple push key they provide. It does **not** proxy or store chats.
+  API key you configure for it (used only over localhost, to watch run completion), and - only if
+  the user wants push - an Apple push key they provide. It does **not** proxy or store chats.
 - **What it does not change:** the app keeps talking to the gateway directly for sessions,
   history, and turn submission. If the BFF stops, history remains readable and accepted text
   turns reconcile, while streaming and upload-dependent sends report the companion outage.
@@ -84,7 +84,7 @@ df -h ~
   alternative you pick) is free, and there is at least ~25 GB disk headroom. Say which port and
   data directory you will use.
 - **Ask first** when: an `~/.agency-bff` directory or running `agency-bff` already exists (this is
-  an upgrade/repair, not an install — inventory it and confirm), or disk is tight, or you cannot
+  an upgrade/repair, not an install - inventory it and confirm), or disk is tight, or you cannot
   verify the gateway's health endpoint.
 - **Do not proceed** when: there is no Hermes gateway on this host (the BFF is useless elsewhere),
   or you cannot obtain a gateway API key legitimately (section 4), or the user declines after your
@@ -115,9 +115,9 @@ and do not store it anywhere else** (only its hash lives in the config).
 
 Then fill in `~/.agency-bff/config.json` using the generated structure:
 
-1. **Gateway:** `gateway.base_url` — the local API server address (normally
-   `http://127.0.0.1:8642`). `gateway.api_key` — the Hermes `API_SERVER_KEY`. Hermes has exactly
-   one key per gateway, so the BFF shares the key the app uses — get the user's explicit OK and
+1. **Gateway:** `gateway.base_url` - the local API server address (normally
+   `http://127.0.0.1:8642`). `gateway.api_key` - the Hermes `API_SERVER_KEY`. Hermes has exactly
+   one key per gateway, so the BFF shares the key the app uses - get the user's explicit OK and
    explain: the key stays in a `0600` file on this machine, and rotating it later means updating
    the gateway, the BFF config, and the app together.
 2. **Listen address:** default `127.0.0.1:8643` is only reachable from this machine. For the
@@ -127,7 +127,7 @@ Then fill in `~/.agency-bff/config.json` using the generated structure:
    point it at the BFF; alternatively set `tls_cert_file`/`tls_key_file` for native TLS. The app
    requires `https://` for non-local addresses.
 3. **Push (optional, can be added later):** needs an APNs auth key from the user's Apple
-   Developer account — `.p8` file into `~/.agency-bff/` (`chmod 600`), plus `key_id`, `team_id`,
+   Developer account - `.p8` file into `~/.agency-bff/` (`chmod 600`), plus `key_id`, `team_id`,
    `bundle_id` of the app build, and `environment` (`development` for Xcode installs,
    `production` for TestFlight/App Store). If the user has no Apple Developer membership, skip:
    everything else works, and `capabilities` will simply report `push: false`.
@@ -192,28 +192,51 @@ Then fill in `~/.agency-bff/config.json` using the generated structure:
      on the uploaded audio), convert and inspect the files the user sends (unpack archives,
      process spreadsheets), and produce media replies into the outbox (TTS audio via Piper,
      rendered charts, video clips). Without them, the agent depends on whatever skills happen
-     to cover these — voice transcription in particular becomes hit-or-miss.
+     to cover these - voice transcription in particular becomes hit-or-miss.
    - **The risk, honestly:** enabling them means anyone holding the gateway API key can run
      arbitrary commands on this machine through an API session. The key is already powerful
-     (full agent access), but shell access removes a containment layer — both against a leaked
+     (full agent access), but shell access removes a containment layer - both against a leaked
      key and against agent mistakes. The key lives in the app's Keychain and this BFF's `0600`
      config; the user must be comfortable with that trust chain.
 
    If the user says **yes**: hermes resolves tools per platform via `platform_toolsets` in
-   `~/.hermes/config.yaml` — add an `api_server` entry there (e.g. the same toolset bundle the
+   `~/.hermes/config.yaml` - add an `api_server` entry there (e.g. the same toolset bundle the
    `cli` platform uses; back the file up first), restart the gateway **only with the user's
    explicit OK** (it interrupts running sessions), then verify with `/v1/toolsets` that
-   `terminal` reports enabled **for platform `api_server`** — asking the agent on another
+   `terminal` reports enabled **for platform `api_server`** - asking the agent on another
    platform (Telegram etc.) answers for that platform, not this one. Sessions created before
    the change may keep the old toolset; test in a fresh session. If **no**: everything still
    works; recommend a local transcription skill (e.g. whisper) so voice messages transcribe
    reliably.
 
+## 4a. REQUIRED: install the Agentic Agency Hermes plugin
+
+BFF 0.28.0 or newer requires this plugin. Without it, model attribution and live thinking
+stay missing on Hermes v0.22.3+. Complete this step before service verification or app handoff.
+Apply it to EVERY Hermes profile the BFF serves, including multiplexed profiles.
+
+Follow [PLUGIN.md](PLUGIN.md#configuration-and-installation) to generate a separate
+secret (`openssl rand -hex 32`), write it to BFF `plugin.secret` and
+`$HERMES_HOME/agentic_agency/plugin.json` with 0600 permissions in a 0700 parent directory,
+and install/enable
+`agentic_agency` from the public plugin repository, pinned by full commit using
+[PLUGIN.md](PLUGIN.md#configuration-and-installation) and
+[the plugin README](https://github.com/FlorianCP/Agentic-Agency-Chat-App-Hermes-Plugin). Enable
+`plugins.stream_reasoning_deltas: true`. Obtain explicit approval before writing
+production config, installing the plugin, or restarting BFF/Hermes on a production host.
+Start the BFF service in section 5 and restart each affected Hermes gateway only after the
+operator approves its restart, then verify Connected and version through `GET /v1/bff/capabilities`: require `plugin.connected: true`, version
+`0.1.0`, and `plugin.reasoning_stream: true`. For every served profile, require an entry in
+`plugin.profiles` with version `0.1.0`, `reasoning_stream: true`, and `last_seen` within
+120 seconds. A connected default profile alone does not verify multiplexed profiles.
+Generate the shared BFF secret once and reuse it in every profile's private plugin config;
+do not regenerate it for each profile. Then verify a watched run's runtime receipt.
+
 ## 5. REQUIRED: run as a keep-alive service and verify
 
 A foreground `agency-bff run` is for debugging only. The install is incomplete until the service
 manager starts it at login/boot and restarts it after a crash. Do not hand the pairing details to
-the user before this section passes.
+the user before this section and the required plugin checks in section 4a pass.
 
 Service templates ship in `deploy/` of the public release repository:
 
@@ -230,10 +253,10 @@ Service templates ship in `deploy/` of the public release repository:
 
 ```sh
 curl -s http://127.0.0.1:8643/health
-# -> {"status":"ok","version":"…"}
+# -> {"status":"ok","version":"..."}
 
 curl -s -H "Authorization: Bearer <PAIRING_TOKEN>" http://127.0.0.1:8643/v1/bff/capabilities
-# -> {"push":…,"upload":true,"media":true,…}
+# -> {"push":...,"upload":true,"media":true,...}
 
 curl -s -H "Authorization: Bearer <PAIRING_TOKEN>" http://127.0.0.1:8643/v1/storage
 # -> combined usage/budget, host disk free, reclaimable bytes, cleanup age, and episode
@@ -274,12 +297,12 @@ Give the user exactly this, filled in:
 > - **URL:** `<the reachable base URL, e.g. https://klaushaus.tail1234.ts.net:8643>`
 > - **Pairing token:** `<the token printed by init>`
 >
-> Tap **Connect and verify**. The app requires version 0.27.0 or newer and will confirm the
-> required baseline:
+> Tap **Connect and verify**. The app requires BFF version 0.28.0 or newer and the enabled
+> Hermes plugin, and will confirm the required baseline:
 > file & voice-memo sending, rich media replies<if push configured>, and notifications when your
 > assistant finishes while the app is closed</if>.
 >
-> The token is like a house key — the app stores it securely; don't paste it anywhere else. You
+> The token is like a house key - the app stores it securely; don't paste it anywhere else. You
 > can rotate it any time by asking me to run `agency-bff token rotate` (then re-pair the app).
 
 Optionally, when media replies are wanted, persist an agent instruction that messages ending in
@@ -299,7 +322,7 @@ to that client tag so other channels are unaffected. Record that you installed t
 
 ## 8. Uninstall
 
-Follow the dedicated runbook: [UNINSTALL.md](UNINSTALL.md) — it covers explaining the impact to
+Follow the dedicated runbook: [UNINSTALL.md](UNINSTALL.md) - it covers explaining the impact to
 the user, inventorying what exists, per-OS removal, and verification. Nothing else on the
 machine is touched by an install, so removal is complete.
 
@@ -312,15 +335,3 @@ Version 0.26.1 upgrades quota to protocol 2: each configured official Codex OAut
 is reported separately with an anonymous refresh-stable identity. This fixes round-robin
 pool ambiguity; account percentages are never added together. One unknown/stale account
 keeps the overview unknown. See [USAGE.md](USAGE.md).
-
-## Agentic Agency Hermes plugin (WP56)
-
-Follow [PLUGIN.md](PLUGIN.md#configuration-and-installation) to generate a separate
-secret (`openssl rand -hex 32`), write it to BFF `plugin.secret` and
-`$HERMES_HOME/agentic_agency/plugin.json` with 0600 permissions, and install/enable
-`agentic_agency` from the public plugin repository, pinned by full commit using
-[PLUGIN.md](PLUGIN.md#configuration-and-installation) and
-[the plugin README](../hermes-plugin/README.md). Enable
-`plugins.stream_reasoning_deltas: true`. Obtain explicit approval before writing
-production config or restarting BFF/Hermes on a production host. Verify Connected and
-version through BFF capabilities, then verify a watched run's runtime receipt.

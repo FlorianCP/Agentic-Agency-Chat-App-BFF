@@ -3,7 +3,9 @@
 **Audience:** an AI agent updating an existing `agency-bff` installation from the public release
 repository at https://github.com/FlorianCP/Agentic-Agency-Chat-App-BFF. This is a production
 service. Inventory first, preserve the keep-alive setup, and keep the previous binary until the
-new version is verified.
+new version is verified. Read ALL version-specific sections newer than the installed version
+through the target version before making changes. Sections marked **(required)** are mandatory
+migrations, not optional features.
 
 ## 1. Inventory the host and current service
 
@@ -17,15 +19,21 @@ systemctl --user status agency-bff 2>/dev/null | head
 
 Map `Darwin` to `darwin`, `Linux` to `linux`, `arm64` or `aarch64` to `arm64`, and `x86_64` to
 `amd64`. Record the installed binary path and whether launchd or systemd owns the process. Do not
-replace a working binary until the matching download and checksum are ready.
+replace a working binary until the matching download and checksum are ready. Record the target
+version from the public release README or selected release tag, then read ALL sections for
+versions newer than the installed one through that target, including every **(required)** section.
+For example, a 0.27.2 to 0.28.0 update must complete section 18. Prepare its configuration and
+plugin installation before the restart in section 3; obtain explicit operator approval before
+any production update, configuration change, or restart.
 
 ## 2. Download and verify the matching release
 
-Set the required version, then download the binary and checksum file from the same public tag.
+Set `VERSION` to the target version (without the `v` prefix) recorded from the public release
+README or selected release tag, then download the binary and checksum file from that same tag.
 The examples use a temporary directory so an incomplete download never touches the service.
 
 ```sh
-VERSION=0.27.0
+: "${VERSION:?Set VERSION to the target release version without the v prefix}"
 OS=darwin       # darwin or linux, from the inventory
 ARCH=arm64      # arm64 or amd64, from the inventory
 REPO=https://github.com/FlorianCP/Agentic-Agency-Chat-App-BFF
@@ -52,7 +60,9 @@ chmod 755 "$INSTALLED.new"
 mv "$INSTALLED.new" "$INSTALLED"
 ```
 
-Restart only the companion service, using the manager already installed:
+After the operator approves the restart, restart the companion service using the manager already
+installed. If a required migration also needs a gateway restart (section 18), obtain approval for
+that restart separately and complete it too:
 
 ```sh
 # macOS launchd
@@ -253,15 +263,56 @@ profile-to-global fallback while explicit `HERMES_HOME` takes precedence. Hermes
 `HERMES_DATA_DIR_SUFFIX`, so leave it unset in the BFF service environment on v0.21.x hosts or
 the BFF may read a different home than Hermes. No configuration change is needed.
 
-## Update the Hermes companion plugin
+## 18. Hermes plugin channel in 0.28.0 (required)
 
-Use [PLUGIN.md](PLUGIN.md#configuration-and-installation) to generate/rotate the
-plugin secret (`openssl rand -hex 32`) in BFF `plugin.secret` and
-`$HERMES_HOME/agentic_agency/plugin.json` (0600). Update/install and enable the
-`agentic_agency` public release pinned by full commit using
-[PLUGIN.md](PLUGIN.md#configuration-and-installation) and
-[its README](../hermes-plugin/README.md). A pinned update uses intentional forced
-reinstallation with the new full commit. Keep
-`plugins.stream_reasoning_deltas: true`, then verify Connected/version and runtime
-recovery. Every production configuration change and BFF/Hermes restart on
-a production host requires the operator's explicit approval for that action.
+Updating to BFF **0.28.0 or newer REQUIRES installing and enabling the `agentic_agency`
+Hermes plugin and wiring its shared secret**. Without it, model attribution and live thinking
+stay missing on Hermes v0.22.3+. Updating the BFF binary alone does not complete this migration.
+See [PLUGIN.md](PLUGIN.md#configuration-and-installation) for the private-config script,
+channel contract, and update details, and [the public plugin README](https://github.com/FlorianCP/Agentic-Agency-Chat-App-Hermes-Plugin)
+for plugin installation details.
+
+Current plugin release: **v0.1.0**, commit
+`0032b87f68782d573114a8f9fbca04ae7afe76a7`.
+
+1. Inventory every Hermes profile the BFF serves, including multiplexed profiles. Resolve each
+   profile's `HERMES_HOME` explicitly. Obtain the operator's explicit approval for each production
+   configuration change, plugin installation, BFF update, and service restart before performing it.
+2. Back up existing private configs. Generate one shared secret with `openssl rand -hex 32`,
+   using the script in [PLUGIN.md](PLUGIN.md#configuration-and-installation) to avoid printing it
+   or recording it in shell history. Set BFF `plugin.secret` in `~/.agency-bff/config.json`
+   (or the installation's configured config path); keep the file at `0600`. The plugin secret
+   must differ from the app pairing token.
+3. For EVERY served profile, write `$HERMES_HOME/agentic_agency/plugin.json` with mode `0600`
+   in an `agentic_agency` directory with mode `0700`:
+   `{"bff_url":"http://127.0.0.1:8643","secret":"<same shared secret>"}`.
+   Use the actual local BFF port. Reuse the same BFF secret across these profiles; do not rerun
+   the secret-generating script separately for each profile and invalidate earlier profiles.
+4. With `HERMES_HOME` set to each intended profile, install the pinned release and enable it:
+
+   ```sh
+   hermes plugins install FlorianCP/Agentic-Agency-Chat-App-Hermes-Plugin --ref 0032b87f68782d573114a8f9fbca04ae7afe76a7 --no-enable
+   hermes plugins doctor agentic_agency --ci
+   hermes plugins enable agentic_agency
+   ```
+
+   In each profile's Hermes config, merge `agentic_agency` into `plugins.enabled` and set
+   `plugins.stream_reasoning_deltas: true`, preserving other plugins and settings.
+5. Restart the BFF to load `plugin.secret` and restart every affected Hermes gateway to load
+   its plugin, only after the operator approves the respective restarts. Preserve existing
+   keep-alive service managers. Do not roll back or replace Hermes as part of this migration.
+6. Using the existing app pairing bearer through a private secret-handling path, inspect
+   `GET /v1/bff/capabilities`. Require `plugin.connected: true` and plugin version `0.1.0`.
+   Verify EVERY expected profile in `plugin.profiles` has version `0.1.0`,
+   `reasoning_stream: true`, and a fresh `last_seen` (within 120 seconds); require
+   `plugin.reasoning_stream: true` too. The top-level connected flag means ANY profile is
+   connected, so it does not prove that all multiplexed profiles are ready. Missing or stale
+   profiles fail verification. Never print the bearer or plugin secret.
+
+Retain the previous BFF binary until section 4 and these plugin checks pass. For later plugin
+updates, follow [PLUGIN.md](PLUGIN.md#update-and-uninstall) and the public plugin README for
+intentional pinned reinstallation and coordinated secret rotation across all served profiles.
+
+## 19. Runbook corrections in 0.28.1
+
+No behaviour change; runbook corrections only. The required 0.28.0 migration in section 18 still applies.

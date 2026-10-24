@@ -5,7 +5,7 @@ Release: BFF 0.28.0 with Hermes plugin 0.1.0.
 The stdlib-only `agentic_agency` Hermes plugin restores model attribution and live
 reasoning when the gateway omits them. The BFF continues to own app pairing,
 files, push, and relay delivery. The plugin never receives the app pairing token.
-See [the plugin README](../hermes-plugin/README.md) for its hooks and installation.
+See [the plugin README](https://github.com/FlorianCP/Agentic-Agency-Chat-App-Hermes-Plugin) for its hooks and installation.
 
 ## Configuration and installation
 
@@ -21,7 +21,11 @@ locations, without printing it or adding it to shell history:
 
 For example, this local operator script updates both private config files without
 showing the secret. Set `HERMES_HOME` to the intended profile first. Preserve
-existing BFF configuration and keep both services on the same host.
+existing BFF configuration and keep both services on the same host. For multiple served or
+multiplexed profiles, generate the shared secret only once, then write the same secret and
+BFF URL into every profile's private plugin config. Do not rerun this secret-generating
+script for each profile, which would invalidate the earlier profiles. Install/enable the
+plugin and set `plugins.stream_reasoning_deltas: true` in every served profile.
 
 ```sh
 python3 - <<'PY'
@@ -48,6 +52,9 @@ PY
 Install the reviewed public plugin release for the intended profile, pinned by
 its full commit (replace `FULL_40_CHARACTER_COMMIT` with that release's commit):
 
+Current release: **v0.1.0**, commit `0032b87f68782d573114a8f9fbca04ae7afe76a7`
+(paired with BFF 0.28.0).
+
 ```sh
 hermes plugins install 'https://github.com/FlorianCP/Agentic-Agency-Chat-App-Hermes-Plugin.git' --ref FULL_40_CHARACTER_COMMIT --no-enable
 hermes plugins doctor agentic_agency --ci
@@ -56,7 +63,7 @@ hermes plugins enable agentic_agency
 
 Set `HERMES_HOME` explicitly to the intended profile before these commands.
 Plain local paths are not Git install sources; see
-[hermes-plugin/README.md](../hermes-plugin/README.md) for `file://` or local-copy
+[the plugin README](https://github.com/FlorianCP/Agentic-Agency-Chat-App-Hermes-Plugin) for `file://` or local-copy
 installation. In the profile's Hermes config merge:
 
 ```yaml

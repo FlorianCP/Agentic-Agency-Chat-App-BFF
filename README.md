@@ -11,6 +11,12 @@ step-by-step guide; this README only covers getting the right binary.
 
 ## Versioning
 
+- Version 0.28.1: no behaviour change. Corrected runbooks: UPDATE.md now has a required section
+  for the 0.28.0 Hermes plugin channel (install and enable the `agentic_agency` plugin, wire its
+  shared secret, verify every profile), SETUP.md installs the plugin as a required step, and
+  links point to the public plugin repository. Hosts on 0.28.0 that skipped the plugin should
+  follow UPDATE.md section 18.
+
 - Version 0.28.0: Hermes v0.22.5 readiness and the Agentic Agency Hermes plugin channel.
   Adds `POST /v1/plugin/events` behind a separate plugin secret (`plugin.secret` in the BFF
   config; the app pairing token is rejected there and the plugin secret on app routes). The

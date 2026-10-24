@@ -1,21 +1,21 @@
-# Agency BFF — Uninstall Runbook (for agents)
+# Agency BFF - Uninstall Runbook (for agents)
 
 **Audience:** you are an AI agent (typically the Hermes agent running on this host) that a user
 has asked to **remove the Agentic Agency BFF companion service**. Follow this runbook top to
 bottom: explain what removal means, inventory what exists, confirm, remove, verify.
 
 **Ground rules:** this is likely a production machine running the user's live Hermes gateway.
-Only remove things this runbook names — never touch the Hermes gateway itself, its config, or
+Only remove things this runbook names - never touch the Hermes gateway itself, its config, or
 its data. Get the user's explicit OK before deleting anything (step 3).
 
 ## 1. Tell the user what uninstalling means
 
-- The app on their phone **keeps working** exactly as before the BFF existed — chat, images,
+- The app on their phone **keeps working** exactly as before the BFF existed - chat, images,
   and on-device voice transcription don't involve the BFF.
 - What they **lose**: sending files/documents to the assistant, voice messages transcribed by
   the assistant, media replies, and (if configured) push notifications.
 - What gets **deleted from this machine**: the `agency-bff` binary, its background service, and
-  its data directory — including the config (with the gateway-key copy and pairing-token hash)
+  its data directory - including the config (with the gateway-key copy and pairing-token hash)
   and any not-yet-cleaned uploads in the inbox/outbox.
 - The Hermes gateway and its API key keep working unchanged; the key was shared with the BFF,
   not owned by it. If the user wants the key rotated anyway, that is a separate gateway task.
@@ -74,7 +74,7 @@ Remove-Item -Recurse -Force "$env:USERPROFILE\.agency-bff"
 ```
 
 If the install used non-default locations (a different `AGENCY_BFF_DIR`, `/usr/local/bin`, a
-reverse-proxy entry the user added for port 8643), remove those too — but back up any file you
+reverse-proxy entry the user added for port 8643), remove those too - but back up any file you
 did not create before editing it (e.g. a shared proxy config).
 
 ## 4a. Remove the learned media capability
@@ -90,15 +90,15 @@ user alongside the file removals.
 ## 5. Verify and hand off
 
 ```sh
-curl -s -m 3 http://127.0.0.1:8643/health || echo "port 8643 no longer serving — good"
-command -v agency-bff || echo "binary gone — good"
-ls ~/.agency-bff 2>/dev/null || echo "data gone — good"
+curl -s -m 3 http://127.0.0.1:8643/health || echo "port 8643 no longer serving - good"
+command -v agency-bff || echo "binary gone - good"
+ls ~/.agency-bff 2>/dev/null || echo "data gone - good"
 ```
 
 Then tell the user:
 
 > The companion service has been removed from this machine. In the chat app, open
-> **Settings → Companion service** and remove the pairing there too (it only forgets the URL
+> **Settings -> Companion service** and remove the pairing there too (it only forgets the URL
 > and token on the phone). Everything else in the app keeps working. You can reinstall anytime
 > - the setup guide is `SETUP.md` in the public release repository at
 > https://github.com/FlorianCP/Agentic-Agency-Chat-App-BFF.
@@ -107,7 +107,7 @@ Then tell the user:
 
 For the intended profile (set `HERMES_HOME` explicitly), run
 `hermes plugins disable agentic_agency`, then `hermes plugins remove agentic_agency`.
-See [hermes-plugin/README.md](../hermes-plugin/README.md) and [PLUGIN.md](PLUGIN.md). Remove
+See [the plugin README](https://github.com/FlorianCP/Agentic-Agency-Chat-App-Hermes-Plugin) and [PLUGIN.md](PLUGIN.md). Remove
 `$HERMES_HOME/agentic_agency/plugin.json`, remove BFF's `plugin` config object,
 and remove `plugins.stream_reasoning_deltas` only if no other plugin needs it.
 Restart BFF and Hermes to unload the channel. On a production host, obtain the operator's explicit
