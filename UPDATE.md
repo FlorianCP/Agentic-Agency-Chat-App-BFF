@@ -316,3 +316,8 @@ intentional pinned reinstallation and coordinated secret rotation across all ser
 ## 19. Runbook corrections in 0.28.1
 
 No behaviour change; runbook corrections only. The required 0.28.0 migration in section 18 still applies.
+
+## 20. Empty inbox fix in 0.28.2
+
+`GET /v1/inbox` now returns `"entries": []` instead of `null` when nothing is new, which the app
+could not read. No configuration change; replace the binary as in sections 2-4.

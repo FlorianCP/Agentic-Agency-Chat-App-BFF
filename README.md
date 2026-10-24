@@ -11,6 +11,9 @@ step-by-step guide; this README only covers getting the right binary.
 
 ## Versioning
 
+- Version 0.28.2: `GET /v1/inbox` returns `"entries": []` instead of `null` when nothing is new, which
+  the app could not read. No configuration change.
+
 - Version 0.28.1: no behaviour change. Corrected runbooks: UPDATE.md now has a required section
   for the 0.28.0 Hermes plugin channel (install and enable the `agentic_agency` plugin, wire its
   shared secret, verify every profile), SETUP.md installs the plugin as a required step, and
