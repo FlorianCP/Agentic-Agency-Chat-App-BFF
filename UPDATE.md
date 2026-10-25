@@ -355,3 +355,22 @@ No new secret or BFF config is needed; the 0.28.0 plugin channel from section 18
 
 New private state: BFF `<data_dir>/state/deliveries.json` and `<files_dir>/outbox/deliveries/`;
 plugin `$HERMES_HOME/agentic_agency/spool/`, `state.json` and lock files.
+
+## 22. Delivery diagnostics in 0.29.2 (plugin 0.2.2)
+
+BFF 0.29.2, Hermes plugin 0.2.2 and the matching app add content-free, correlated WP66 diagnostics
+through target selection, spool/transcript, receipt/inbox, push policy and app routing/refresh.
+The delivery id stays unchanged across retries. Job ids are added to event, inbox and push payloads.
+No state migration is needed. See [LOGGING.md](LOGGING.md) and [DEBUGGING.md](DEBUGGING.md).
+
+Reinstall plugin v0.2.2 (commit `c3bc1e0d642492d771cc4fadc65d38b9fc1d283d`)
+for every served profile (including profiles with an existing 0.2.1 install):
+
+```sh
+hermes plugins install https://github.com/FlorianCP/Agentic-Agency-Chat-App-Hermes-Plugin.git --ref c3bc1e0d642492d771cc4fadc65d38b9fc1d283d --force --no-enable
+```
+
+Follow the per-profile install/update recipe in [PLUGIN.md](PLUGIN.md) and the normal BFF update
+procedure above. Confirm BFF version 0.29.2 and plugin profile versions 0.2.2 in capabilities, then
+trace a delivery using the runbook. Reinstallation/enablement and gateway restart on personal
+production services require separate explicit approval. This document does not authorize them.

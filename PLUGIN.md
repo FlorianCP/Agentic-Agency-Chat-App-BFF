@@ -1,6 +1,6 @@
 # Hermes companion channel (WP56 first slice)
 
-Release: BFF 0.29.1 with Hermes plugin 0.2.1 (the channel itself since BFF 0.28.0 and plugin 0.1.0).
+Release: BFF 0.29.2 with Hermes plugin 0.2.2 (the channel itself since BFF 0.28.0 and plugin 0.1.0).
 
 The stdlib-only `agentic_agency` Hermes plugin restores model attribution and live
 reasoning when the gateway omits them. The BFF continues to own app pairing,
@@ -52,8 +52,8 @@ PY
 Install the reviewed public plugin release for the intended profile, pinned by
 its full commit (replace `FULL_40_CHARACTER_COMMIT` with that release's commit):
 
-Current release: **v0.2.1**, commit `56f1d30e6e8f7ce86b61f57d0ebb23581589eb16`
-(paired with BFF 0.29.1).
+Current release: **v0.2.2**, commit `c3bc1e0d642492d771cc4fadc65d38b9fc1d283d`
+(paired with BFF 0.29.2).
 
 ```sh
 hermes plugins install 'https://github.com/FlorianCP/Agentic-Agency-Chat-App-Hermes-Plugin.git' --ref FULL_40_CHARACTER_COMMIT --no-enable
@@ -86,8 +86,8 @@ of app auth. The app pairing token is rejected here; the plugin secret is reject
 on every app-authenticated route. The fixed-size secret hash comparison is
 constant-time. Keep this channel on localhost and keep config files private.
 Secrets are never included in event bodies, capabilities, responses, or logs.
-The reusable `requirePluginAuth` middleware is also the intended gate for WP66's
-future `POST /v1/plugin/deliveries`; that route is not implemented in this slice.
+The reusable `requirePluginAuth` middleware also protects WP66's implemented
+`POST /v1/plugin/deliveries` and `POST /v1/plugin/media` routes.
 
 A batch contains `plugin_version`, optional `hermes_version`, `profile`, and an
 `events` array of `hello` (also accepted as `heartbeat`), `runtime`, and `reasoning`
@@ -268,3 +268,14 @@ the chat turns unread without another banner. Hermes already skips empty and
 Capabilities add `features.deliveries: true` and, per plugin profile,
 `delivery_platform` (bool) and `inbox_session_id` (string or null), reported by
 the plugin's `hello`.
+
+
+### Delivery correlation and diagnostics (0.29.2 / 0.2.2)
+
+`delivery.received` events carry `delivery_id`, `session_id`, `profile`, `inbox`, `notify`,
+`source`, `job_name` and optional `job_id`. Delivery inbox entries and APNs payloads carry the same
+stable `delivery_id`, session/profile and optional `job_id`; the app preserves them in diagnostics.
+Media uploads may include `X-Delivery-ID`, `X-Session-ID`, `X-Delivery-Profile` and
+`X-Delivery-Job-ID` headers for correlation. Each plugin HTTP attempt supplies `X-Request-ID`.
+These additions are optional and older clients ignore them. See [LOGGING.md](LOGGING.md) for
+content-free lifecycle events and [DEBUGGING.md](DEBUGGING.md) for reconstruction commands.

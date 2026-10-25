@@ -182,3 +182,58 @@ block at `block_index`. Preserve the session filter throughout; ids alone are no
 Pending joins retain only the local id, content digest and later-identical-reply count across chat
 navigation. On the next history load, repeated replies match from the end of that session history,
 preventing an older identical reply from taking a new turn's id.
+
+## Reconstructing a scheduled or proactive delivery
+
+Requires plugin 0.2.2, BFF 0.29.2 and the matching app. Start with the delivery id from the plugin
+spool/acknowledgement, BFF receipt/event/push, or device diagnostics. No production changes or
+restart are needed to read these records. Use the configured log root from section 1:
+
+```sh
+DELIVERY_ID='delivery-id-from-incident'
+grep -RhF "$DELIVERY_ID" "$LOG_ROOT"/bff-*.log "$LOG_ROOT"/devices/*/*.jsonl
+jq -c --arg id "$DELIVERY_ID" 'select(.delivery_id == $id)' "$LOG_ROOT"/bff-*.log
+jq -c --arg id "$DELIVERY_ID" 'select(.message | contains($id)) | {ts,received_at,device_id,seq,session_id,message}' "$LOG_ROOT"/devices/*/*.jsonl
+grep -hF "$DELIVERY_ID" "$HERMES_HOME"/logs/gateway.log*
+```
+
+Repeat the Hermes search for every served profile home, including the gateway launch home:
+background spool records can land there. Hermes records are timestamped text with a JSON event
+payload. To inspect their fields, strip the formatter prefix, then parse:
+
+```sh
+grep -hF "$DELIVERY_ID" "$HERMES_HOME"/logs/gateway.log* | sed 's/^[^{]*//' | jq -c .
+```
+
+Follow `target_rewritten` (join by session/job/time before a delivery id exists), inbox creation
+if needed, `spooled` with target kind and ordering key, `transcript_committed` with numeric message
+id, `post_attempt` with request id, then BFF `accepted`/`inbox_appended`/`event_published`. Check
+push scheduled/completed or its exact suppression reason. Finally follow device received/catch-up,
+routing, unread/toast decision, refresh, and transcript decode. Use `seq` for device order,
+plugin/BFF timestamps for server order, and `received_at` only for upload order. The transcript API
+omits delivery metadata, so join device `transcript_decoded.message_ids` to the plugin's committed
+message id and session. Each nonempty fetch emits one summary: total `count` and at most the last
+20 delivery `message_ids`. Older rows are outside this bounded diagnostic sample. Retain every
+retry request id, then grep it across access and delivery
+records to recover status/duration even if the plugin lost the HTTP response.
+
+Common failure signatures:
+
+- No target rewrite: inspect `cronjob_manage` action, originating platform and explicit target.
+  Only api_server create with missing/origin target or update with explicit origin is rewritten.
+  Explicit targets, other channels, and jobs created before these logs legitimately have no rewrite.
+- `transcript_deferred` with `reason=active_turn_lease`: a live turn owns the transcript. Expect
+  a retry with backoff, then the committed row. `dropped` shows terminal age/attempt budgets.
+  `written_or_duplicate` is the host API's ambiguous first success; later marked retries report
+  duplicate. The stable `message_id` identifies the row in both cases.
+- BFF `delivery.rejected`: inspect its fixed field-specific reason and matching request status.
+  A 401/404 before the handler has only access/auth logs; correlate using the plugin request id.
+- Push suppressed: `notify_false` is expected for attachments; `apns_unconfigured` and
+  `no_devices` explain setup gaps. `job_window` includes remaining seconds in the five-minute
+  window; `hourly_limit` includes count/limit and time until the oldest reservation expires.
+- App never received the event: broadcast is not an acknowledgement. Check the app events-stream
+  connection logs and foreground lifecycle. Reconnection uses the durable inbox cursor and should
+  emit `inbox_processed`. Compare push-provider results with `push_received`/`push_tapped`, then
+  check notification permission, device reachability, and diagnostics toggle/upload backlog.
+  Missing phone logs alone cannot prove the app never executed: inspect exported local diagnostics,
+  shipper health and retention before drawing that conclusion.

@@ -11,6 +11,12 @@ step-by-step guide; this README only covers getting the right binary.
 
 ## Versioning
 
+- Version 0.29.2: content-free, correlated delivery diagnostics. Each delivery step (receipt,
+  duplicate or rejection with reason, inbox entry, event, push sent or suppressed with the limiter
+  state, per-device result, media upload) is logged with its `delivery_id`, `session_id`,
+  `profile`, `job_id` and request id; `job_id` is added to delivery events, inbox entries and
+  pushes. Pairs with Hermes plugin v0.2.2; reinstall it per UPDATE.md section 22. See LOGGING.md
+  and the DEBUGGING.md runbook.
 - Version 0.29.1: no behaviour change. Runbooks pair Hermes plugin v0.2.1, which stops Hermes'
   gateway-online and restart notices from reaching the app's Assistant inbox. Reinstall the plugin
   per UPDATE.md section 21.
