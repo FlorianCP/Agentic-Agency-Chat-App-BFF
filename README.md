@@ -11,6 +11,9 @@ step-by-step guide; this README only covers getting the right binary.
 
 ## Versioning
 
+- Version 0.29.1: no behaviour change. Runbooks pair Hermes plugin v0.2.1, which stops Hermes'
+  gateway-online and restart notices from reaching the app's Assistant inbox. Reinstall the plugin
+  per UPDATE.md section 21.
 - Version 0.29.0: scheduled and proactive deliveries with Hermes plugin v0.2.0 on Hermes
   v0.22.5+. Adds `POST /v1/plugin/deliveries` and `POST /v1/plugin/media` behind the plugin
   secret, `kind: "delivery"` inbox entries, a `delivery.received` event, rate-limited delivery

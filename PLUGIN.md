@@ -1,6 +1,6 @@
 # Hermes companion channel (WP56 first slice)
 
-Release: BFF 0.29.0 with Hermes plugin 0.2.0 (the channel itself since BFF 0.28.0 and plugin 0.1.0).
+Release: BFF 0.29.1 with Hermes plugin 0.2.1 (the channel itself since BFF 0.28.0 and plugin 0.1.0).
 
 The stdlib-only `agentic_agency` Hermes plugin restores model attribution and live
 reasoning when the gateway omits them. The BFF continues to own app pairing,
@@ -52,8 +52,8 @@ PY
 Install the reviewed public plugin release for the intended profile, pinned by
 its full commit (replace `FULL_40_CHARACTER_COMMIT` with that release's commit):
 
-Current release: **v0.2.0**, commit `f8871f58b66ceb7f45afd1e203b3f1bde47685c8`
-(paired with BFF 0.29.0).
+Current release: **v0.2.1**, commit `56f1d30e6e8f7ce86b61f57d0ebb23581589eb16`
+(paired with BFF 0.29.1).
 
 ```sh
 hermes plugins install 'https://github.com/FlorianCP/Agentic-Agency-Chat-App-Hermes-Plugin.git' --ref FULL_40_CHARACTER_COMMIT --no-enable
@@ -157,7 +157,7 @@ them for their normal seven day recovery window. Never delete other plugins' fil
 
 ## Scheduled and proactive deliveries (WP66)
 
-Release: BFF 0.29.0 with Hermes plugin 0.2.0, Hermes v0.22.5 or later. On older
+Release: BFF 0.29.0+ with Hermes plugin 0.2.0+ (0.2.1 drops Hermes host notices), Hermes v0.22.5 or later. On older
 hosts the plugin keeps its telemetry role and does not register the platform.
 
 Hermes cron delivers only through messaging platforms, and the `api_server`
@@ -177,6 +177,9 @@ an `agentic_agency` messaging platform. Cron jobs (and the plugin's
   use and remembers its id in `$HERMES_HOME/agentic_agency/state.json`.
 - Unknown, foreign-profile, or non-`api_server` session ids are rejected by the
   platform's target validation, so a job cannot write into another channel.
+- Only cron results (and their attachments) and the notify tool become deliveries. Hermes'
+  own host notices to the inbox home channel (gateway online/restart pings, warnings) are
+  dropped by the adapter (plugin 0.2.1), since the app's users are not operators.
 
 ### Transcript row (source of truth for the timeline)
 

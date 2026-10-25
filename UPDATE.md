@@ -323,10 +323,11 @@ No behaviour change; runbook corrections only. The required 0.28.0 migration in 
 `GET /v1/inbox` now returns `"entries": []` instead of `null` when nothing is new, which the app
 could not read. No configuration change; replace the binary as in sections 2-4.
 
-## 21. Scheduled and proactive deliveries in 0.29.0 (plugin 0.2.0)
+## 21. Scheduled and proactive deliveries in 0.29.0 (plugin 0.2.0; 0.29.1 pairs plugin 0.2.1)
 
-BFF 0.29.0 pairs with Hermes plugin **v0.2.0**, commit `f8871f58b66ceb7f45afd1e203b3f1bde47685c8`, on Hermes v0.22.5
-or newer. Scheduled jobs created from an app chat then deliver into that chat with a push, jobs
+BFF 0.29.1 pairs with Hermes plugin **v0.2.1**, commit `56f1d30e6e8f7ce86b61f57d0ebb23581589eb16`, on Hermes v0.22.5
+or newer (0.29.1 changes only these runbooks; plugin 0.2.1 stops Hermes' gateway-online and restart
+notices from reaching the app inbox). Scheduled jobs created from an app chat then deliver into that chat with a push, jobs
 without a target land in an "Assistant" inbox chat, and the agent can message the user on its
 own (`agentic_agency_notify`). See [PLUGIN.md](PLUGIN.md#scheduled-and-proactive-deliveries-wp66).
 
@@ -338,7 +339,7 @@ No new secret or BFF config is needed; the 0.28.0 plugin channel from section 18
 3. For EVERY served profile (set `HERMES_HOME` explicitly), reinstall the pinned plugin release:
 
    ```sh
-   hermes plugins install FlorianCP/Agentic-Agency-Chat-App-Hermes-Plugin --ref f8871f58b66ceb7f45afd1e203b3f1bde47685c8 --no-enable --force
+   hermes plugins install FlorianCP/Agentic-Agency-Chat-App-Hermes-Plugin --ref 56f1d30e6e8f7ce86b61f57d0ebb23581589eb16 --no-enable --force
    hermes plugins doctor agentic_agency --ci
    hermes plugins enable agentic_agency
    ```
@@ -347,11 +348,10 @@ No new secret or BFF config is needed; the 0.28.0 plugin channel from section 18
    relevant lists and keep `cronjob` for `api_server`; never replace the operator's lists.
 4. Restart every affected Hermes gateway after approval. The platform loads only at gateway start.
 5. Verify `GET /v1/bff/capabilities`: `features.deliveries: true`, and for EVERY expected profile in
-   `plugin.profiles` version `0.2.0`, `delivery_platform: true` and a fresh `last_seen`.
+   `plugin.profiles` version `0.2.1`, `delivery_platform: true` and a fresh `last_seen`.
    `inbox_session_id` stays null until the first delivery to the inbox creates that chat.
 6. Optional live check: in an app chat, ask the assistant to send a short test message in one
    minute. It must arrive in that chat with a push and a "Scheduled" label. Remove the test job.
 
 New private state: BFF `<data_dir>/state/deliveries.json` and `<files_dir>/outbox/deliveries/`;
 plugin `$HERMES_HOME/agentic_agency/spool/`, `state.json` and lock files.
-
