@@ -11,6 +11,9 @@ step-by-step guide; this README only covers getting the right binary.
 
 ## Versioning
 
+- Version 0.29.3: no behaviour change. Runbooks pair Hermes plugin v0.2.3, which asks the agent
+  to explain a step that may need approval in plain words before it runs. Reinstall the plugin per
+  UPDATE.md section 23.
 - Version 0.29.2: content-free, correlated delivery diagnostics. Each delivery step (receipt,
   duplicate or rejection with reason, inbox entry, event, push sent or suppressed with the limiter
   state, per-device result, media upload) is logged with its `delivery_id`, `session_id`,

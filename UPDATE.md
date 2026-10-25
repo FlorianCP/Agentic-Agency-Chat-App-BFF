@@ -374,3 +374,22 @@ Follow the per-profile install/update recipe in [PLUGIN.md](PLUGIN.md) and the n
 procedure above. Confirm BFF version 0.29.2 and plugin profile versions 0.2.2 in capabilities, then
 trace a delivery using the runbook. Reinstallation/enablement and gateway restart on personal
 production services require separate explicit approval. This document does not authorize them.
+
+## 23. Plain-language approval explanations in plugin 0.2.3 (BFF 0.29.3)
+
+Hermes plugin 0.2.3 adds the `agentic_agency.approvals` system prompt section (WP76): in app
+chats (`api_server` sessions), the agent first writes one or two plain sentences in the user's
+language about what it is about to do and why, before a step that may need approval. BFF 0.29.3
+has no behaviour change from 0.29.2; it ships these runbooks paired with plugin 0.2.3. Update the
+BFF with the normal procedure above; no state migration is needed.
+
+Reinstall plugin v0.2.3 (commit `d3978f9fc56c55c437bf14d78450d45ee10ba6db`) for every served profile:
+
+```sh
+hermes plugins install https://github.com/FlorianCP/Agentic-Agency-Chat-App-Hermes-Plugin.git --ref d3978f9fc56c55c437bf14d78450d45ee10ba6db --force --no-enable
+```
+
+Follow the per-profile install/update recipe in [PLUGIN.md](PLUGIN.md), then restart the gateway.
+Confirm BFF version 0.29.3 and plugin profile versions 0.2.3 in capabilities. Hermes freezes system prompts per session,
+so check the explanation in a new chat. Reinstallation and gateway restart on personal production
+services require separate explicit approval. This document does not authorize them.

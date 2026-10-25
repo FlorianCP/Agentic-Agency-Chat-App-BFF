@@ -226,8 +226,8 @@ and install/enable
 production config, installing the plugin, or restarting BFF/Hermes on a production host.
 Start the BFF service in section 5 and restart each affected Hermes gateway only after the
 operator approves its restart, then verify Connected and version through `GET /v1/bff/capabilities`: require `plugin.connected: true`, version
-`0.2.2`, and `plugin.reasoning_stream: true`. For every served profile, require an entry in
-`plugin.profiles` with version `0.2.2`, `reasoning_stream: true`, `delivery_platform: true`
+`0.2.3`, and `plugin.reasoning_stream: true`. For every served profile, require an entry in
+`plugin.profiles` with version `0.2.3`, `reasoning_stream: true`, `delivery_platform: true`
 (Hermes v0.22.5 or newer; it lets scheduled jobs deliver into app chats), and `last_seen` within
 120 seconds. If a profile restricts `platform_toolsets`, merge `agentic_agency` into its lists and
 keep `cronjob` for `api_server`. A connected default profile alone does not verify multiplexed profiles.

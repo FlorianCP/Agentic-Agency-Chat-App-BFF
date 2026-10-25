@@ -1,6 +1,6 @@
 # Hermes companion channel (WP56 first slice)
 
-Release: BFF 0.29.2 with Hermes plugin 0.2.2 (the channel itself since BFF 0.28.0 and plugin 0.1.0).
+Release: BFF 0.29.3 with Hermes plugin 0.2.3 (the channel itself since BFF 0.28.0 and plugin 0.1.0).
 
 The stdlib-only `agentic_agency` Hermes plugin restores model attribution and live
 reasoning when the gateway omits them. The BFF continues to own app pairing,
@@ -52,8 +52,8 @@ PY
 Install the reviewed public plugin release for the intended profile, pinned by
 its full commit (replace `FULL_40_CHARACTER_COMMIT` with that release's commit):
 
-Current release: **v0.2.2**, commit `c3bc1e0d642492d771cc4fadc65d38b9fc1d283d`
-(paired with BFF 0.29.2).
+Current release: **v0.2.3**, commit `d3978f9fc56c55c437bf14d78450d45ee10ba6db`
+(paired with BFF 0.29.3).
 
 ```sh
 hermes plugins install 'https://github.com/FlorianCP/Agentic-Agency-Chat-App-Hermes-Plugin.git' --ref FULL_40_CHARACTER_COMMIT --no-enable
@@ -269,7 +269,6 @@ Capabilities add `features.deliveries: true` and, per plugin profile,
 `delivery_platform` (bool) and `inbox_session_id` (string or null), reported by
 the plugin's `hello`.
 
-
 ### Delivery correlation and diagnostics (0.29.2 / 0.2.2)
 
 `delivery.received` events carry `delivery_id`, `session_id`, `profile`, `inbox`, `notify`,
@@ -279,3 +278,20 @@ Media uploads may include `X-Delivery-ID`, `X-Session-ID`, `X-Delivery-Profile` 
 `X-Delivery-Job-ID` headers for correlation. Each plugin HTTP attempt supplies `X-Request-ID`.
 These additions are optional and older clients ignore them. See [LOGGING.md](LOGGING.md) for
 content-free lifecycle events and [DEBUGGING.md](DEBUGGING.md) for reconstruction commands.
+
+## System prompt sections (WP76)
+
+The plugin registers `agentic_agency.delivery` (cross-platform schedule/media
+guidance) and `agentic_agency.approvals` (plain-language explanation before a
+potentially gated tool call). The latter renders only for `api_server` sessions,
+including app chats and other API clients; Telegram, CLI, and cron delivery
+sessions receive no approval section. Hermes v0.22.5 exposes platform metadata,
+not an app-client marker. Sections are frozen into persisted session prompts,
+so check rollout in a new chat. Approvals register independently of private
+configuration and delivery setup, with their own failure warning and unload
+cleanup. Delivery guidance retains delivery's host-API checks and cleanup. See [the plugin prompt contract and pinned source](../hermes-plugin/README.md#system-prompt-sections).
+
+The plugin callback is the sole approval instruction source. No duplicate rule
+is added to `agent-snippet.md`, no new BFF/event field is introduced, and approval
+detection and approve/deny behavior remain Hermes-owned. Model compliance and
+language quality need live checks; this guidance cannot guarantee an explanation.
