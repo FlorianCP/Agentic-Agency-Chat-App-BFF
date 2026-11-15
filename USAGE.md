@@ -84,15 +84,18 @@ makes one request per non-dead OAuth token and never retries or rotates an expir
 403 is `auth_rejected`; the next poll reads the then-current credential store. A 429 is
 `rate_limited`; the BFF waits for its whole-second `Retry-After` (at most 30 minutes) before it
 asks again. Hermes 0.23 reads the same endpoint after each turn, so the BFF refreshes Claude usage
-at most every 5 minutes. Exact duplicate
+at most every 10 minutes. After a rate limit, timeout, or upstream error, the BFF keeps the slot's
+last good reading for up to 6 hours, marked `stale` with its original `fetched_at`; the app shows
+it with an "as of" time. An `auth_rejected` or credential failure clears it. Exact duplicate
 current tokens are deduplicated in memory for that poll.
 
 Hermes does not expose an Anthropic account UUID through these credential readers. The anonymous
 Anthropic `id` is a provider-prefixed hash of a Hermes credential-entry ID, or a fixed singleton
 source name for environment, Hermes PKCE, or Claude Code credentials. It identifies a credential
 slot, not a verified distinct Anthropic account. Different slots for the same account may therefore appear separately, and a
-slot may refer to a different account after reauthentication. The BFF does not retain stale
-Anthropic usage across a failed fetch, so old limits cannot be attributed to a repointed slot.
+slot may refer to a different account after reauthentication. The BFF retains a stale reading only
+after a rate limit, timeout, or upstream error; an authentication or credential failure, which is
+what a repointed slot produces, clears it, so old limits are not attributed to a new account.
 The raw Hermes credential-entry IDs, access tokens, refresh tokens, email addresses, and plan
 metadata are never returned or logged; only anonymous slot hashes are returned. At most four
 distinct OAuth slots are supported; more returns `account_limit_exceeded`.

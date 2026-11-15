@@ -406,3 +406,12 @@ minutes) and asks for Claude usage at most every 5 minutes, because Hermes 0.23 
 endpoint after each turn. Update the BFF with the normal procedure above; no state migration and
 no plugin change are needed. Confirm version 0.29.4, then check `GET /v1/usage?provider=anthropic`.
 
+## 25. Last known Claude usage in 0.29.5
+
+Hermes 0.23 reads Anthropic's usage endpoint after each turn, so Anthropic often rate-limits it for
+the same token. BFF 0.29.5 keeps the last good Claude reading for up to 6 hours after a rate limit,
+timeout, or upstream error, marked `stale` with its original `fetched_at`; an `auth_rejected` or
+credential failure still clears it. It refreshes Claude usage at most every 10 minutes. Apps with the
+matching change show such a reading with its "as of" time; older apps hide readings older than two
+minutes. Update the BFF with the normal procedure above; no state migration is needed.
+

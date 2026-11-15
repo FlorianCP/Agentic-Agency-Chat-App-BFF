@@ -11,6 +11,9 @@ step-by-step guide; this README only covers getting the right binary.
 
 ## Versioning
 
+- Version 0.29.5: shows the last known Claude usage while Anthropic rate-limits its usage endpoint
+  (up to 6 hours, marked stale with its fetch time) and refreshes Claude usage at most every 10
+  minutes. See UPDATE.md section 25.
 - Version 0.29.4: Claude usage works with Hermes 0.23, which stores borrowed Anthropic
   credentials (`env:CLAUDE_CODE_OAUTH_TOKEN`, `claude_code`) as references. The BFF honors the
   usage endpoint's `Retry-After` and refreshes Claude usage at most every 5 minutes. See
