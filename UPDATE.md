@@ -393,3 +393,16 @@ Follow the per-profile install/update recipe in [PLUGIN.md](PLUGIN.md), then res
 Confirm BFF version 0.29.3 and plugin profile versions 0.2.3 in capabilities. Hermes freezes system prompts per session,
 so check the explanation in a new chat. Reinstallation and gateway restart on personal production
 services require separate explicit approval. This document does not authorize them.
+
+## 24. Claude usage with Hermes 0.23 credential references in 0.29.4
+
+Hermes 0.23 writes borrowed Anthropic credentials (`env:ANTHROPIC_TOKEN`,
+`env:CLAUDE_CODE_OAUTH_TOKEN`, `claude_code`) to `auth.json` as references without the secret.
+BFF 0.29.3 treated these rows as incomplete and reported Claude usage as
+`credentials_unavailable`. BFF 0.29.4 resolves each reference from its source, like Hermes: the
+named environment variable (process or Hermes `.env`) or Claude Code's credential file or
+Keychain item. It also honors the `Retry-After` of a rate-limited usage response (up to 30
+minutes) and asks for Claude usage at most every 5 minutes, because Hermes 0.23 reads the same
+endpoint after each turn. Update the BFF with the normal procedure above; no state migration and
+no plugin change are needed. Confirm version 0.29.4, then check `GET /v1/usage?provider=anthropic`.
+

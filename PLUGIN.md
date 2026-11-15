@@ -79,6 +79,9 @@ restart needs explicit approval for that specific production action. Installatio
 instructions do not authorize those actions. No gateway rollback is part of this
 channel setup.
 
+Shared JSON examples and producer/consumer tests live in [contracts/](../contracts/README.md).
+Change the fixture first when this contract changes.
+
 ## HTTP surface and security
 
 `POST /v1/plugin/events` uses `Authorization: Bearer <plugin secret>`, independently

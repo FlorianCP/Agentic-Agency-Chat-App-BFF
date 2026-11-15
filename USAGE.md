@@ -66,6 +66,11 @@ literal API-key entries are excluded. A pool `api_key` record with the recognize
 This is a subscription-credential inventory independent of the active chat provider or resolver
 precedence: it may show configured OAuth subscription credentials while chat uses an API key, but
 it never queries usage with an API key.
+Hermes 0.23 and later write borrowed credentials to `auth.json` as references without the secret:
+a pool row keeps `source` (`env:ANTHROPIC_TOKEN`, `env:CLAUDE_CODE_OAUTH_TOKEN`, or `claude_code`)
+and a `secret_fingerprint`. The helper resolves such a row from its source the way Hermes does:
+the named environment variable (process environment, then Hermes `.env`) or Claude Code's
+credential file or Keychain item. Any other reference makes the inventory incomplete.
 The helper does not load or select the pool, resolve a token, inspect refresh state, or refresh
 credentials. A malformed relevant OAuth entry makes that provider inventory unavailable. Custom
 Anthropic routes are excluded, and a process-level or Hermes `.env` `ANTHROPIC_BASE_URL` override
@@ -76,7 +81,10 @@ Anthropic's account-usage request goes only to
 `https://api.anthropic.com/api/oauth/usage`, without redirects or inherited HTTP proxies. It uses
 the stored OAuth access token with the Claude Code `anthropic-beta` and `User-Agent` headers. It
 makes one request per non-dead OAuth token and never retries or rotates an expired token. A 401 or
-403 is `auth_rejected`; the next poll reads the then-current credential store. Exact duplicate
+403 is `auth_rejected`; the next poll reads the then-current credential store. A 429 is
+`rate_limited`; the BFF waits for its whole-second `Retry-After` (at most 30 minutes) before it
+asks again. Hermes 0.23 reads the same endpoint after each turn, so the BFF refreshes Claude usage
+at most every 5 minutes. Exact duplicate
 current tokens are deduplicated in memory for that poll.
 
 Hermes does not expose an Anthropic account UUID through these credential readers. The anonymous

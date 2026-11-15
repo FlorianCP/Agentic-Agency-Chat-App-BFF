@@ -11,6 +11,10 @@ step-by-step guide; this README only covers getting the right binary.
 
 ## Versioning
 
+- Version 0.29.4: Claude usage works with Hermes 0.23, which stores borrowed Anthropic
+  credentials (`env:CLAUDE_CODE_OAUTH_TOKEN`, `claude_code`) as references. The BFF honors the
+  usage endpoint's `Retry-After` and refreshes Claude usage at most every 5 minutes. See
+  UPDATE.md section 24.
 - Version 0.29.3: no behaviour change. Runbooks pair Hermes plugin v0.2.3, which asks the agent
   to explain a step that may need approval in plain words before it runs. Reinstall the plugin per
   UPDATE.md section 23.
